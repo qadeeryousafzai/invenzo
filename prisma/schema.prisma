@@ -1,0 +1,326 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlatformRole {
+  USER
+  SUPER_ADMIN
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum BusinessType {
+  PHARMACY
+  GROCERY
+  ELECTRONICS
+  CLOTHING
+  WHOLESALE
+  GENERAL_RETAIL
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id                  String                @id @default(cuid())
+  name                String?
+  email               String                @unique @db.VarChar(191)
+  emailVerified       DateTime?
+  image               String?               @db.Text
+  passwordHash        String?               @db.VarChar(255)
+  platformRole        PlatformRole          @default(USER)
+  tokenVersion        Int                   @default(0)
+  disabledAt          DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  memberships         Membership[]
+  sentInvitations     MembershipInvite[]     @relation("InvitationSender")
+  emailTokens         EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+  managedBranches     Branch[]              @relation("BranchManager")
+  auditEvents         AuditLog[]
+
+  @@index([platformRole, disabledAt])
+  @@map("users")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique @db.Char(64)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique @db.Char(64)
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model Business {
+  id                 String             @id @default(cuid())
+  name               String             @db.VarChar(191)
+  slug               String             @unique @db.VarChar(191)
+  type               BusinessType       @default(GENERAL_RETAIL)
+  description        String?            @db.Text
+  logoUrl            String?            @db.Text
+  email              String?            @db.VarChar(191)
+  phone              String?            @db.VarChar(40)
+  address            String?            @db.Text
+  latitude           Decimal?           @db.Decimal(10, 7)
+  longitude          Decimal?           @db.Decimal(10, 7)
+  businessHours      Json?
+  taxId              String?            @db.VarChar(100)
+  currency           String             @default("USD") @db.Char(3)
+  timezone           String             @default("UTC") @db.VarChar(64)
+  website            String?            @db.VarChar(255)
+  verificationStatus VerificationStatus @default(PENDING)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+  memberships        Membership[]
+  invitations        MembershipInvite[]
+  roles              Role[]
+  products           Product[]
+  productListings    ProductListing[]
+  branches           Branch[]
+  warehouses         Warehouse[]
+  auditLogs          AuditLog[]
+
+  @@index([type, verificationStatus, deletedAt])
+  @@map("businesses")
+}
+
+model Membership {
+  id         String           @id @default(cuid())
+  businessId String
+  userId     String
+  roleId     String
+  status     MembershipStatus @default(ACTIVE)
+  joinedAt   DateTime         @default(now())
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  business   Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role             @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@unique([businessId, userId])
+  @@index([userId, status])
+  @@index([businessId, status])
+  @@map("memberships")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  businessId  String
+  name        String           @db.VarChar(100)
+  key         String           @db.VarChar(64)
+  description String?          @db.VarChar(255)
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  memberships Membership[]
+  invitations MembershipInvite[]
+  permissions RolePermission[]
+
+  @@unique([businessId, key])
+  @@index([businessId, isSystem])
+  @@map("roles")
+}
+
+model Permission {
+  key         String           @id @db.VarChar(100)
+  description String           @db.VarChar(255)
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionKey String     @db.VarChar(100)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@id([roleId, permissionKey])
+  @@map("role_permissions")
+}
+
+model MembershipInvite {
+  id          String    @id @default(cuid())
+  businessId  String
+  roleId      String
+  invitedById String
+  email       String    @db.VarChar(191)
+  tokenHash   String    @unique @db.Char(64)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  invitedBy   User      @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([businessId, expiresAt])
+  @@index([businessId, email, acceptedAt])
+  @@index([email, expiresAt])
+  @@map("membership_invites")
+}
+
+model Branch {
+  id            String       @id @default(cuid())
+  businessId    String
+  name          String       @db.VarChar(191)
+  code          String       @db.VarChar(32)
+  managerId     String?
+  phone         String?      @db.VarChar(40)
+  address       String?      @db.Text
+  latitude      Decimal?     @db.Decimal(10, 7)
+  longitude     Decimal?     @db.Decimal(10, 7)
+  businessHours Json?
+  status      BranchStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+  business    Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  manager     User?        @relation("BranchManager", fields: [managerId], references: [id], onDelete: SetNull)
+  productListings ProductListing[]
+  warehouses  Warehouse[]
+
+  @@unique([businessId, code])
+  @@unique([id, businessId])
+  @@index([businessId, status, deletedAt])
+  @@index([managerId])
+  @@map("branches")
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  businessId  String
+  name        String           @db.VarChar(191)
+  sku         String           @db.VarChar(64)
+  barcode     String?          @db.VarChar(128)
+  brand       String?          @db.VarChar(120)
+  category    String?          @db.VarChar(120)
+  description String?          @db.Text
+  imageUrl    String?          @db.Text
+  unit        String           @default("unit") @db.VarChar(32)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  listings    ProductListing[]
+
+  @@unique([businessId, sku])
+  @@unique([businessId, barcode])
+  @@unique([id, businessId])
+  @@index([businessId, name, deletedAt])
+  @@index([businessId, category, deletedAt])
+  @@map("products")
+}
+
+model ProductListing {
+  id                 String          @id @default(cuid())
+  businessId         String
+  productId          String
+  branchId           String
+  price              Decimal         @db.Decimal(12, 2)
+  marketplaceEnabled Boolean         @default(false)
+  pickupEnabled      Boolean         @default(true)
+  deliveryEnabled    Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  business           Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product            Product         @relation(fields: [productId, businessId], references: [id, businessId], onDelete: Cascade)
+  branch             Branch          @relation(fields: [branchId, businessId], references: [id, businessId], onDelete: Cascade)
+  batches            InventoryBatch[]
+
+  @@unique([productId, branchId])
+  @@unique([id, businessId])
+  @@index([businessId, marketplaceEnabled, branchId])
+  @@index([productId, marketplaceEnabled])
+  @@map("product_listings")
+}
+
+model InventoryBatch {
+  id                String         @id @default(cuid())
+  businessId        String
+  productListingId  String
+  batchNumber       String         @db.VarChar(64)
+  quantityRemaining Decimal        @db.Decimal(14, 3)
+  expiryDate        DateTime?
+  receivedAt        DateTime       @default(now())
+  archivedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  listing           ProductListing @relation(fields: [productListingId, businessId], references: [id, businessId], onDelete: Cascade)
+
+  @@unique([productListingId, batchNumber])
+  @@index([businessId, productListingId, expiryDate, archivedAt])
+  @@index([productListingId, quantityRemaining, expiryDate])
+  @@map("inventory_batches")
+}
+
+model Warehouse {
+  id         String   @id @default(cuid())
+  businessId String
+  branchId   String
+  name       String   @db.VarChar(191)
+  code       String   @db.VarChar(32)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch     Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, code])
+  @@index([businessId, branchId, deletedAt])
+  @@map("warehouses")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  businessId String?
+  userId     String?
+  action     String   @db.VarChar(100)
+  entity     String   @db.VarChar(100)
+  entityId   String?  @db.VarChar(191)
+  metadata   Json?
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now())
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, createdAt])
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
