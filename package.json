@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "next dev",
     "clean:next-config": "node scripts/clean-next-config-artifacts.mjs",
-    "build": "next build --webpack",
+    "build": "prisma generate && next build --webpack",
     "start": "next start --hostname 0.0.0.0",
-    "hostinger:build": "npm run clean:next-config && prisma generate && next build --webpack",
+    "hostinger:build": "npm run clean:next-config && npm run build",
     "lint": "eslint",
     "test": "node --import tsx --test tests/unit/*.test.mjs",
     "typecheck": "tsc --noEmit",
