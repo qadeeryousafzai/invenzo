@@ -18,14 +18,11 @@ DATABASE_URL="mysql://USERNAME:PERCENT_ENCODED_PASSWORD@HOST:PORT/DATABASE_NAME"
 
 Percent-encode reserved characters in the password before putting it in the URL. Never share or commit this connection string. A production database does not need a Prisma shadow database; do not set `SHADOW_DATABASE_URL` on production.
 
+For the current Hostinger setup, the database name and username are `u514608833_invenzoapp`, and the reported MySQL host is `srv915.hstgr.io` (confirm the port and exact hostname in hPanel). The configured site origin is `https://invenzoapp.com`. The database password is intentionally not documented here; add it only in the ignored local `.env` file and Hostinger's private environment settings.
+
 ## 3. Prepare the migration history before production
 
-There are currently no committed Prisma migrations in this repository. Before the first production deployment:
-
-1. Configure a separate, empty **development** MySQL database locally.
-2. Create the initial migration against that development database with `pnpm exec prisma migrate dev --name foundation`.
-3. Review and commit the generated `prisma/migrations/` directory to source control.
-4. Do not run `migrate dev` against Hostinger's production database.
+The initial Prisma schema migration is now included under `prisma/migrations/`. It creates the application tables from `prisma/schema.prisma` and does not seed data.
 
 If development migrations cannot be created because the MySQL provider restricts shadow databases, follow the separate-database guidance in [database-setup.md](database-setup.md). Never use a populated or production database as a shadow database.
 
@@ -40,6 +37,7 @@ Set these in the Node.js application environment settings **before building**, n
 - `DATABASE_URL` — Hostinger production MySQL connection string
 - `AUTH_SECRET` — a newly generated, strong production secret
 - `AUTH_URL` — the canonical HTTPS origin, for example `https://inventory.example.com`
+- `AUTH_TRUST_HOST=true` — required when Auth.js runs behind Hostinger's reverse proxy
 - `APP_URL` — the same canonical HTTPS origin, used for email links
 - `RESEND_API_KEY` and `EMAIL_FROM` — for verification and password-reset email
 - `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` — optional values if bootstrapping the platform administrator with the seed
@@ -51,11 +49,11 @@ Keep these values server-side; never prefix secrets with `NEXT_PUBLIC_`. Use the
 
 Build and start the application using Hostinger's Node.js app settings:
 
-- **Build:** `pnpm exec prisma generate && pnpm build` (or `npm exec prisma generate && npm run build`). The Prisma config requires `DATABASE_URL` during client generation.
+- **Build:** `pnpm hostinger:build` (or `npm run hostinger:build`). This generates Prisma Client and builds Next.js. The Prisma config requires `DATABASE_URL` to be available during the build.
 - **Start:** `pnpm start` (or `npm start`). Keep it running as a Node.js service and point the domain to the app through hPanel.
 - Enable HTTPS before allowing users to sign in or install the web app.
 
-Then, connect to the app using Hostinger's terminal/SSH and run:
+Before applying the first migration, confirm in hPanel that the selected database is empty. If it already contains Invenzo tables/data, stop and baseline/reconcile it rather than running the initial migration over existing tables. On a new empty database, connect to the app using Hostinger's terminal/SSH and run:
 
 ```sh
 pnpm db:deploy
@@ -76,3 +74,9 @@ If configured, bootstrap the administrator once with `pnpm db:seed`. The seed se
 ## Install on mobile or desktop
 
 Invenzo includes a web app manifest and install action. On supported browsers, open the site over HTTPS and select **Install app**. On iPhone/iPad Safari, use **Share → Add to Home Screen**. The installed app uses the same Hostinger-hosted site and receives updates when it is redeployed; it is not a separate native App Store download.
+
+
+
+
+
+
