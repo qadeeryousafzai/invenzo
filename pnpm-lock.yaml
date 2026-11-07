@@ -14,6 +14,9 @@ importers:
       '@next/env':
         specifier: 16.4.3
         version: 16.4.3
+      '@next/swc-wasm-nodejs':
+        specifier: 16.4.3
+        version: 16.4.3
       '@prisma/client':
         specifier: ^6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
@@ -702,6 +705,9 @@ packages:
     cpu: [x64]
     os: [linux]
     libc: [musl]
+
+  '@next/swc-wasm-nodejs@16.4.3':
+    resolution: {integrity: sha512-vJl7V950RQTY8OqK6/0pD3F5NbyeefYVxpa/6u/Y98eZ6lK7/eUK8b4g+EzIUBytWic8fL4MkDuK4DYDf9Wh0A==}
 
   '@next/swc-win32-arm64-msvc@16.4.3':
     resolution: {integrity: sha512-lG1pPdPLk7gTyGb00n5JIMLdBJgjb+UEhSdZvFbhUMg0DyC6z4B7RnpSKF9VCd4imkLObVbXOFA0kFCpw7yFow==}
@@ -2956,6 +2962,8 @@ snapshots:
 
   '@next/swc-linux-x64-musl@16.4.3':
     optional: true
+
+  '@next/swc-wasm-nodejs@16.4.3': {}
 
   '@next/swc-win32-arm64-msvc@16.4.3':
     optional: true

@@ -1,10 +1,10 @@
 # Deploy Invenzo to Hostinger
 
-Invenzo uses a Node.js server and MySQL, so deploy it as a **Node.js web application** and use a **Hostinger MySQL database**. Do not upload it as a static website: authentication, API routes, and Prisma require a running Node.js server.
+Invenzo uses a Node.js server and MySQL, so deploy it as a **Node.js web application** and use a **Hostinger MySQL database**. Do not upload it as a static website: authentication, API routes, and Prisma require a running Node.js server. Use Node.js **20.x** on Hostinger; `.nvmrc` and `package.json` now select that major version.
 
 ## 1. Confirm the hosting plan
 
-In hPanel, confirm that the plan provides Node.js application hosting (or use a Hostinger VPS). The application needs Node.js 20.19 or newer, persistent application hosting, HTTPS, and a way to set environment variables and run deployment commands. If your plan does not provide a Node.js app runtime, use a VPS or upgrade; a static hosting slot cannot run this app.
+In hPanel, confirm that the plan provides Node.js application hosting (or use a Hostinger VPS). The application needs Node.js 20.19+, persistent application hosting, HTTPS, and a way to set environment variables and run deployment commands. If your plan does not provide a Node.js app runtime, use a VPS or upgrade; a static hosting slot cannot run this app.
 
 ## 2. Create the production MySQL database
 
@@ -28,7 +28,7 @@ If development migrations cannot be created because the MySQL provider restricts
 
 ## 4. Connect the application source
 
-Connect the repository through Hostinger's Git deployment or upload it to the Node.js app root. Configure the repository root as the working directory, choose Node.js 20.19 or newer, and install dependencies with `pnpm install --frozen-lockfile` (or `npm ci` if the Hostinger runtime is configured for npm).
+Connect the repository through Hostinger's Git deployment or upload it to the Node.js app root. Configure the repository root as the working directory, explicitly select Node.js 20.x in hPanel, and install dependencies from the lockfile with `npm ci` (or `pnpm install --frozen-lockfile`). The npm lockfile pins Next.js and its Linux SWC packages to 16.4.3. A matching SWC WASM fallback is also installed for older-glibc hosts; production uses Webpack because Turbopack requires native SWC bindings.
 
 ## 5. Add production environment variables in hPanel
 
@@ -49,7 +49,7 @@ Keep these values server-side; never prefix secrets with `NEXT_PUBLIC_`. Use the
 
 Build and start the application using Hostinger's Node.js app settings:
 
-- **Build:** `pnpm hostinger:build` (or `npm run hostinger:build`). This generates Prisma Client and builds Next.js. The Prisma config requires `DATABASE_URL` to be available during the build.
+- **Build:** `pnpm hostinger:build` (or `npm run hostinger:build`). This generates Prisma Client and builds Next.js with Webpack, avoiding Turbopack's native-only requirement. The Prisma config requires `DATABASE_URL` to be available during the build.
 - **Start:** `pnpm start` (or `npm start`). Keep it running as a Node.js service and point the domain to the app through hPanel.
 - Enable HTTPS before allowing users to sign in or install the web app.
 
@@ -74,9 +74,3 @@ If configured, bootstrap the administrator once with `pnpm db:seed`. The seed se
 ## Install on mobile or desktop
 
 Invenzo includes a web app manifest and install action. On supported browsers, open the site over HTTPS and select **Install app**. On iPhone/iPad Safari, use **Share → Add to Home Screen**. The installed app uses the same Hostinger-hosted site and receives updates when it is redeployed; it is not a separate native App Store download.
-
-
-
-
-
-

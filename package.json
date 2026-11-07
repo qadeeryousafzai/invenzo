@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20.19"
+    "node": ">=20.19 <21"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start --hostname 0.0.0.0",
-    "hostinger:build": "prisma generate && next build",
+    "hostinger:build": "prisma generate && next build --webpack",
     "lint": "eslint",
     "test": "node --import tsx --test tests/unit/*.test.mjs",
     "typecheck": "tsc --noEmit",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@hookform/resolvers": "^7.0.1",
     "@next/env": "16.4.3",
+    "@next/swc-wasm-nodejs": "16.4.3",
     "@prisma/client": "^6.19.3",
     "@radix-ui/react-slot": "^1.5.0",
     "bcryptjs": "^3.0.3",
