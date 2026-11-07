@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f4fbf8",
-    theme_color: "#087f68",
+    background_color: "#f6f9fc",
+    theme_color: "#176b87",
     icons: [
       { src: "/icon", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/invenzo-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowDownRight, ArrowRight, Boxes, Building2, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { PwaInstallButton } from "@/components/ui/pwa-install-button";
 
 const features = [
@@ -11,10 +10,10 @@ const features = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f4fbf8]">
+    <main className="min-h-screen overflow-hidden bg-[#f6f9fc]">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
         <Link href="/" aria-label="Invenzo home" className="flex items-center gap-2.5"><span className="grid size-9 place-items-center rounded-xl bg-[#175b45] text-white"><Boxes size={20} /></span><span className="text-[1.3rem] font-bold tracking-tight text-slate-950">invenzo<span className="text-emerald-700">.</span></span></Link>
-        <div className="flex items-center gap-2 sm:gap-3"><ThemeToggle /><PwaInstallButton /><Link href="/marketplace" className="hidden rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white sm:inline">Find nearby products</Link><Link href="/login" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white">Sign in</Link><Link href="/register" className="brand-gradient rounded-lg px-3 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_#087f6825] transition hover:-translate-y-0.5 sm:px-4">Create workspace <ArrowRight className="ml-1 inline" size={15} /></Link></div>
+        <div className="flex items-center gap-2 sm:gap-3"><PwaInstallButton /><Link href="/marketplace" className="hidden rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white sm:inline">Find nearby products</Link><Link href="/login" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white">Sign in</Link><Link href="/register" className="brand-gradient rounded-lg px-3 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_#087f6825] transition hover:-translate-y-0.5 sm:px-4">Create workspace <ArrowRight className="ml-1 inline" size={15} /></Link></div>
       </nav>
       <section className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 pb-24 pt-16 lg:grid-cols-[1.04fr_.96fr] lg:px-10 lg:pb-32 lg:pt-24">
         <div className="animate-in relative z-10"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white px-3.5 py-2 text-xs font-semibold tracking-wide text-emerald-900 shadow-sm"><Sparkles size={14} /> INVENTORY, WITH CLARITY</div><h1 className="max-w-2xl text-5xl font-semibold leading-[1.08] tracking-[-.055em] text-[#17211b] sm:text-6xl lg:text-[4.3rem]">Smarter inventory.<br /><span className="gradient-text">Greater control.</span></h1><p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">A calmer way to run your stock, teams, and branches. Start with one private workspace built around how your business works.</p><div className="mt-9 flex flex-wrap items-center gap-4"><Link href="/register" className="brand-gradient inline-flex items-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_#087f6825] transition hover:-translate-y-0.5">Get started <ArrowRight size={17} /></Link><a href="#foundation" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300">Explore the platform <ArrowDownRight size={16} /></a></div><div className="mt-8 flex items-center gap-2 text-sm text-slate-500"><CheckCircle2 size={16} className="text-emerald-700" /> Private workspaces. Team-ready from day one.</div></div>

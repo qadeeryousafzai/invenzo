@@ -3,3 +3,7 @@ allowBuilds:
   '@prisma/engines': true
   esbuild: true
   prisma: true
+
+  
+packages:
+  - '.'
