@@ -23,6 +23,8 @@ For local development, `.env.local` contains a randomly generated, git-ignored A
 
 For detailed hosted MySQL 8 setup, shadow-database permissions, migration, and super-admin seeding, see [database-setup.md](database-setup.md).
 
+For deployment to Hostinger Node.js hosting with Hostinger MySQL, see [hostinger-deployment.md](hostinger-deployment.md). Invenzo is also installable as a web app on supported mobile and desktop browsers.
+
 ## Main site links
 - Homepage: http://localhost:3000/
 - Nearby product marketplace: http://localhost:3000/marketplace
@@ -50,6 +52,7 @@ The Phase 1 super-admin console supports platform summaries and business verific
 - `npm run build` — production build.
 - `npm run db:generate` — Prisma Client generation.
 - `npm run db:migrate` — apply a development migration (Prisma prompts for the migration name if needed).
+- `npm run db:deploy` — apply committed migrations to the production database.
 - `npm run db:seed` — bootstrap an explicitly configured platform admin.
 - `pnpm dev` — start the development server (recommended).
 - `pnpm db:seed` — bootstrap the configured super-admin account.

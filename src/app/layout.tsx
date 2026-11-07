@@ -6,6 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Invenzo — Smarter Inventory. Greater Control.", template: "%s · Invenzo" },
   description: "A secure workspace for modern inventory teams.",
+  appleWebApp: { capable: true, title: "Invenzo", statusBarStyle: "default" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

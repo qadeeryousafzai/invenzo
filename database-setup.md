@@ -2,6 +2,8 @@
 
 This guide connects Invenzo to **two dedicated, empty MySQL 8 databases**: the primary application database and Prisma Migrate's disposable shadow database. It intentionally does not reuse the existing configured database because it already contains tables and migration history unrelated to Invenzo.
 
+For a production deployment hosted on Hostinger, follow [hostinger-deployment.md](hostinger-deployment.md). Use a separate production database and do not configure a shadow database there.
+
 ## 1. Create the databases in your hosting panel
 
 In your MySQL hosting/control panel:

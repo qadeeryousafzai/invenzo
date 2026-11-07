@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", {
   variants: {
     variant: {
-      default: "bg-emerald-800 text-white shadow-sm hover:bg-emerald-900",
+      default: "brand-gradient text-white shadow-sm hover:brightness-95",
       secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
       outline: "border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50",
       ghost: "text-slate-700 hover:bg-slate-100",
