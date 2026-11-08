@@ -40,6 +40,7 @@ Set these in the Node.js application environment settings **before building**, n
 - `AUTH_TRUST_HOST=true` — required when Auth.js runs behind Hostinger's reverse proxy
 - `APP_URL` — the same canonical HTTPS origin, used for email links
 - `RESEND_API_KEY` and `EMAIL_FROM` — for verification and password-reset email
+- `CRON_SECRET` — a separate random secret for scheduled account maintenance requests
 - `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` — optional values if bootstrapping the platform administrator with the seed
 - `NODE_ENV=production` — if not set automatically by the hosting runtime
 
@@ -70,6 +71,10 @@ If configured, bootstrap the administrator once with `pnpm db:seed`. The seed se
 - Configure encrypted database backups in hPanel and periodically test a restore.
 - Keep production and development databases separate. Apply production schema changes with `pnpm db:deploy`, never `prisma migrate dev`.
 - The current in-process rate limiter is intended for a single app instance. Configure a shared Redis-backed limiter before scaling across multiple instances.
+
+### Schedule account expiry and notifications
+
+The application exposes `POST /api/cron/business-account-maintenance`. Configure a trusted hosting cron service or external scheduler to call it at least once per day. Send the server-side `CRON_SECRET` as `Authorization: Bearer <secret>`. The job expires accounts, restores timed blocks whose duration has ended, and sends one advance warning for each account expiry date. Do not place the secret in browser code or a public URL. If no scheduler calls this endpoint, stored access checks still block expired accounts, but persisted `EXPIRED` state and scheduled notices will not be processed.
 
 ## Install on mobile or desktop
 

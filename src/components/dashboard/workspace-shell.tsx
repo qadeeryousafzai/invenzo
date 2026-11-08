@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, Building2, CircleUserRound, LayoutDashboard, PackageSearch, UsersRound } from "lucide-react";
+import { Bell, Boxes, Building2, CircleUserRound, LayoutDashboard, PackageSearch, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { WorkspaceControls } from "@/components/dashboard/workspace-controls";
 import { PwaInstallButton } from "@/components/ui/pwa-install-button";
 
 type Workspace = { id: string; name: string; role: string };
 
-export function WorkspaceShell({ children, businessName, businessType, activeId, workspaces, userName, roleName }: { children: ReactNode; businessName: string; businessType: string; activeId: string; workspaces: Workspace[]; userName: string; roleName: string }) {
+export function WorkspaceShell({ children, businessName, businessType, activeId, workspaces, userName, roleName, unreadNotifications = 0 }: { children: ReactNode; businessName: string; businessType: string; activeId: string; workspaces: Workspace[]; userName: string; roleName: string; unreadNotifications?: number }) {
   const currentPath = usePathname();
   const links = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -17,6 +17,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
     { href: "/dashboard/branches", label: "Branches", icon: Building2 },
     { href: "/dashboard/employees", label: "Team & roles", icon: UsersRound },
     { href: "/dashboard/business", label: "Business profile", icon: Building2 },
+    { href: "/dashboard/notifications", label: unreadNotifications ? `Notifications · ${unreadNotifications}` : "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "My profile", icon: CircleUserRound },
   ];
   return <div className="min-h-screen bg-[#f7f8f6]">

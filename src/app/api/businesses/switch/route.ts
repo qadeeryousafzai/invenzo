@@ -14,7 +14,8 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = z.object({ businessId: z.string().min(1).max(191) }).safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Choose a valid workspace." }, { status: 400 });
-  const membership = await prisma.membership.findFirst({ where: { userId: session.user.id, businessId: parsed.data.businessId, status: "ACTIVE", business: { deletedAt: null, accessPausedAt: null, verificationStatus: "VERIFIED", subscriptionExpiresAt: { gt: new Date() } } }, select: { businessId: true } });
+  const now = new Date();
+  const membership = await prisma.membership.findFirst({ where: { userId: session.user.id, businessId: parsed.data.businessId, status: "ACTIVE", business: { deletedAt: null, subscriptionExpiresAt: { gt: now }, OR: [{ accountStatus: "ACTIVE" }, { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } }] } }, select: { businessId: true } });
   if (!membership) return NextResponse.json({ error: "Workspace access denied." }, { status: 403 });
   const response = NextResponse.json({ message: "Workspace switched." });
   response.cookies.set("active-business-id", membership.businessId, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 60 * 60 * 24 * 30 });

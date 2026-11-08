@@ -17,3 +17,8 @@ export function safeEmailHtml(title: string, link: string, action: string, expir
   const safeLink = escapeHtml(link);
   return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:32px auto;color:#17211b"><h1>${escapeHtml(title)}</h1><p>Use the secure link below. It expires in ${escapeHtml(expiration)}.</p><p><a href="${safeLink}" style="display:inline-block;background:#175b45;color:white;padding:12px 18px;border-radius:8px;text-decoration:none">${escapeHtml(action)}</a></p><p>If you did not request this, you can ignore this email.</p></div>`;
 }
+
+export function safeNotificationEmailHtml(title: string, message: string) {
+  const escapeHtml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:32px auto;color:#17211b"><h1>${escapeHtml(title)}</h1><p style="line-height:1.6">${escapeHtml(message)}</p><p>Sign in to your Invenzo account to view the latest account status.</p></div>`;
+}

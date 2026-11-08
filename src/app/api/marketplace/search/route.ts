@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     const listings = await prisma.productListing.findMany({
       where: {
         marketplaceEnabled: true,
-        business: { verificationStatus: "VERIFIED", subscriptionExpiresAt: { gt: now }, accessPausedAt: null, deletedAt: null },
+        business: { subscriptionExpiresAt: { gt: now }, deletedAt: null, OR: [{ accountStatus: "ACTIVE" }, { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } }] },
         branch: { status: "ACTIVE", deletedAt: null },
         product: {
           deletedAt: null,

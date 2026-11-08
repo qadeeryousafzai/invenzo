@@ -18,6 +18,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
         if (!user || user.disabledAt || user.deletedAt || !user.emailVerified || !user.passwordHash) return null;
         if (!(await compare(parsed.data.password, user.passwordHash))) return null;
+        if (user.platformRole !== PlatformRole.SUPER_ADMIN) {
+          const now = new Date();
+          const hasActiveBusiness = await prisma.membership.count({
+            where: {
+              userId: user.id,
+              status: "ACTIVE",
+              business: {
+                deletedAt: null,
+                subscriptionExpiresAt: { gt: now },
+                OR: [
+                  { accountStatus: "ACTIVE" },
+                  { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } },
+                ],
+              },
+            },
+          });
+          if (!hasActiveBusiness) return null;
+        }
         return { id: user.id, name: user.name, email: user.email, platformRole: user.platformRole, tokenVersion: user.tokenVersion };
       },
     }),
@@ -34,7 +52,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           delete token.sub;
           delete token.platformRole;
         } else {
-          token.platformRole = current.platformRole;
+          const now = new Date();
+          const hasActiveBusiness = current.platformRole === PlatformRole.SUPER_ADMIN || await prisma.membership.count({
+            where: {
+              userId: token.sub,
+              status: "ACTIVE",
+              business: {
+                deletedAt: null,
+                subscriptionExpiresAt: { gt: now },
+                OR: [
+                  { accountStatus: "ACTIVE" },
+                  { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } },
+                ],
+              },
+            },
+          }) > 0;
+          if (!hasActiveBusiness) {
+            delete token.sub;
+            delete token.platformRole;
+          } else {
+            token.platformRole = current.platformRole;
+          }
         }
       }
       return token;

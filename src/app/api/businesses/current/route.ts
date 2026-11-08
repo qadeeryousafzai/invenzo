@@ -9,7 +9,7 @@ const schema = z.object({ name: z.string().trim().min(2).max(191), description: 
 export async function GET() {
   try {
     const context = await requireTenantContext("business.view");
-    const business = await prisma.business.findFirst({ where: { id: context.businessId, deletedAt: null }, select: { id: true, name: true, type: true, description: true, email: true, phone: true, address: true, taxId: true, website: true, currency: true, timezone: true, verificationStatus: true, createdAt: true } });
+    const business = await prisma.business.findFirst({ where: { id: context.businessId, deletedAt: null }, select: { id: true, name: true, type: true, description: true, email: true, phone: true, address: true, taxId: true, website: true, currency: true, timezone: true, accountStatus: true, createdAt: true } });
     return NextResponse.json({ data: business });
   } catch (error) {
     if (error instanceof TenantAuthorizationError) return NextResponse.json({ error: error.message }, { status: error.message === "Authentication required." ? 401 : 403 });

@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceShell } from "@/components/dashboard/workspace-shell";
 import { WorkspaceAccessNotice } from "@/components/dashboard/workspace-access-notice";
 import { getTenantContext } from "@/lib/tenant-context";
@@ -20,8 +21,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const active = context.membership;
   const accessStatus = getWorkspaceAccessStatus(active.business);
   if (accessStatus !== "ACTIVE") {
-    return <WorkspaceAccessNotice businessName={active.business.name} status={accessStatus} expiresAt={active.business.subscriptionExpiresAt?.toISOString() ?? null} />;
+    return <WorkspaceAccessNotice businessName={active.business.name} status={accessStatus} expiresAt={active.business.subscriptionExpiresAt?.toISOString() ?? null} reason={active.business.statusReason} />;
   }
   const workspaces = context.memberships.map((membership) => ({ id: membership.businessId, name: membership.business.name, role: membership.role.name }));
-  return <WorkspaceShell businessName={active.business.name} businessType={active.business.type} activeId={active.businessId} workspaces={workspaces} userName={session?.user.name ?? session?.user.email ?? "Account"} roleName={active.role.name}>{children}</WorkspaceShell>;
+  const unreadNotifications = await prisma.notification.count({ where: { audience: "BUSINESS_USER", userId: context.userId, businessId: { in: context.memberships.map((membership) => membership.businessId) }, readAt: null } });
+  return <WorkspaceShell businessName={active.business.name} businessType={active.business.type} activeId={active.businessId} workspaces={workspaces} userName={session?.user.name ?? session?.user.email ?? "Account"} roleName={active.role.name} unreadNotifications={unreadNotifications}>{children}</WorkspaceShell>;
 }

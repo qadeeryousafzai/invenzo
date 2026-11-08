@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const passwordHash = parsed.data.password ? await hash(parsed.data.password, 12) : undefined;
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const invite = await tx.membershipInvite.findUnique({ where: { tokenHash }, include: { business: { select: { deletedAt: true, accessPausedAt: true, verificationStatus: true, subscriptionExpiresAt: true } } } });
+      const invite = await tx.membershipInvite.findUnique({ where: { tokenHash }, include: { business: { select: { deletedAt: true, accountStatus: true, statusUntil: true, subscriptionExpiresAt: true } } } });
       if (!invite || invite.acceptedAt || invite.expiresAt <= new Date() || invite.business.deletedAt) throw new Error("INVALID_INVITATION");
       if (getWorkspaceAccessStatus(invite.business) !== "ACTIVE") throw new Error("WORKSPACE_INACTIVE");
       if (session?.user?.id && session.user.email?.toLowerCase() !== invite.email) throw new Error("INVITATION_EMAIL_MISMATCH");

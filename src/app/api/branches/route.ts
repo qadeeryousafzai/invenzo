@@ -58,7 +58,7 @@ export async function POST(request: Request) {
           latitude: data.latitude,
           longitude: data.longitude,
           businessHours: data.businessHours,
-          warehouses: { create: { businessId: context.businessId, name: "Main warehouse", code: "MAIN" } },
+          warehouses: { create: { name: "Main warehouse", code: "MAIN" } },
         },
       });
       await tx.auditLog.create({ data: { businessId: context.businessId, userId: context.userId, action: "branch.created", entity: "branch", entityId: created.id } });

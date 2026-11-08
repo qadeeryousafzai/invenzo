@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { sendTransactionalEmail, safeEmailHtml } from "@/lib/email";
 import { rateLimit, requestIp } from "@/lib/rate-limit";
 import { DEFAULT_ROLES, PERMISSIONS } from "@/modules/businesses/permissions";
+import { recordBusinessEvent } from "@/modules/businesses/lifecycle";
 
 const registrationSchema = z.object({
   ownerName: z.string().trim().min(2).max(100),
@@ -92,9 +93,19 @@ export async function POST(request: Request) {
       const ownerRoleId = roleIds.get("OWNER");
       if (!ownerRoleId) throw new Error("Owner role could not be initialized.");
       await tx.membership.create({ data: { businessId: business.id, userId: user.id, roleId: ownerRoleId } });
-      await tx.branch.create({ data: { businessId: business.id, name: data.branchName, code: data.branchCode.toUpperCase(), phone: data.branchPhone ?? data.phone, address: data.branchAddress ?? data.address, latitude: data.latitude, longitude: data.longitude, businessHours: data.businessHours, warehouses: { create: { businessId: business.id, name: "Main warehouse", code: "MAIN" } } } });
+      await tx.branch.create({ data: { businessId: business.id, name: data.branchName, code: data.branchCode.toUpperCase(), phone: data.branchPhone ?? data.phone, address: data.branchAddress ?? data.address, latitude: data.latitude, longitude: data.longitude, businessHours: data.businessHours, warehouses: { create: { name: "Main warehouse", code: "MAIN" } } } });
       await tx.emailVerificationToken.create({ data: { tokenHash, userId: user.id, expiresAt: new Date(Date.now() + 30 * 60 * 1000) } });
-      await tx.auditLog.create({ data: { businessId: business.id, userId: user.id, action: "business.registered", entity: "business", entityId: business.id, metadata: { businessType: data.businessType } } });
+      await recordBusinessEvent(tx, {
+        businessId: business.id,
+        businessName: business.name,
+        ownerUserId: user.id,
+        newStatus: "PENDING_APPROVAL",
+        action: "business.registered",
+        metadata: { businessType: data.businessType },
+        eventKey: `registration:${business.id}`,
+        adminNotice: { type: "business.registration", title: "New business registration", body: `${business.name} submitted a registration request and is awaiting review.` },
+        ownerNotice: { type: "business.registration_received", title: "Application received", body: "Your business registration is awaiting platform review. Dashboard access begins after approval." },
+      });
       return business.id;
     }, { maxWait: 10_000, timeout: 60_000 });
   } catch (error) {
@@ -109,10 +120,13 @@ export async function POST(request: Request) {
     await sendTransactionalEmail(email, "Verify your Invenzo account", safeEmailHtml("Verify your email address", link.toString(), "Verify email"));
   } catch (error) {
     if (createdBusinessId) {
-      await prisma.$transaction([
-        prisma.business.delete({ where: { id: createdBusinessId } }),
-        prisma.user.delete({ where: { email } }),
-      ]).catch(() => undefined);
+      await prisma.$transaction(async (tx) => {
+        await tx.notification.deleteMany({ where: { businessId: createdBusinessId, dedupeKey: { startsWith: `registration:${createdBusinessId}:` } } });
+        await tx.businessStatusHistory.deleteMany({ where: { businessId: createdBusinessId } });
+        await tx.auditLog.deleteMany({ where: { businessId: createdBusinessId } });
+        await tx.business.delete({ where: { id: createdBusinessId } });
+        await tx.user.delete({ where: { email } });
+      }).catch(() => undefined);
     }
     console.error("Verification email delivery failed", error);
     return NextResponse.json({ error: "Email verification is not configured or could not be delivered. Ask the administrator to configure email, then try again." }, { status: 503 });
