@@ -9,7 +9,7 @@ Multi-tenant inventory and product-discovery SaaS, being developed incrementally
 - A Resend account/API key and verified sender for verification and password-reset emails
 
 ## Local setup
-1. Copy `.env.example` to `.env` (or `.env.local`) and set `DATABASE_URL` to a dedicated, empty MySQL 8 development database. Do not point setup migrations at another application's database.
+1. Copy `.env.example` to `.env` (or `.env.local`) and configure either `DATABASE_URL` or `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` for a dedicated MySQL 8 database. Do not point setup migrations at another application's database.
 2. If the MySQL provider denies `CREATE DATABASE`, provision a second empty disposable database and set `SHADOW_DATABASE_URL` to it. Keep it separate from the primary database.
 3. Set `RESEND_API_KEY` and a verified `EMAIL_FROM` for verification and password-reset emails.
 4. Set `SUPER_ADMIN_EMAIL` and a strong unique `SUPER_ADMIN_PASSWORD` (12+ characters) to create the platform administrator.
@@ -42,7 +42,7 @@ For deployment to Hostinger Node.js hosting with Hostinger MySQL, see [hostinger
 - Personal settings: http://localhost:3000/dashboard/settings
 - Super-admin console: http://localhost:3000/super-admin (requires the seeded account)
 
-The Phase 1 super-admin console supports platform summaries and business verification. Other platform management modules are planned, not yet functional.
+The super-admin console lists workspace requests, approves access for one calendar month after offline payment is confirmed, and manually renews access for another month. Expiry pauses all workspace members without deleting their accounts or business data. Other platform management modules are planned, not yet functional.
 
 ## Useful scripts
 - `npm run dev` — local Next.js development server.

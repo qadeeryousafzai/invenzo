@@ -49,6 +49,7 @@ model User {
   platformRole        PlatformRole          @default(USER)
   tokenVersion        Int                   @default(0)
   disabledAt          DateTime?
+  deletedAt           DateTime?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   memberships         Membership[]
@@ -59,6 +60,7 @@ model User {
   auditEvents         AuditLog[]
 
   @@index([platformRole, disabledAt])
+  @@index([deletedAt, disabledAt])
   @@map("users")
 }
 
@@ -105,6 +107,10 @@ model Business {
   timezone           String             @default("UTC") @db.VarChar(64)
   website            String?            @db.VarChar(255)
   verificationStatus VerificationStatus @default(PENDING)
+  subscriptionStartedAt DateTime?
+  subscriptionExpiresAt DateTime?
+  accessPausedAt      DateTime?
+  accessPausedReason  String?            @db.VarChar(500)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   deletedAt          DateTime?
@@ -118,6 +124,7 @@ model Business {
   auditLogs          AuditLog[]
 
   @@index([type, verificationStatus, deletedAt])
+  @@index([verificationStatus, subscriptionExpiresAt, deletedAt])
   @@map("businesses")
 }
 

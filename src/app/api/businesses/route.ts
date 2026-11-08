@@ -55,6 +55,11 @@ export async function POST(request: Request) {
   let createdBusinessId = "";
 
   try {
+    await prisma.permission.createMany({
+      data: Object.entries(PERMISSIONS).map(([key, description]) => ({ key, description })),
+      skipDuplicates: true,
+    });
+
     createdBusinessId = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ data: { name: data.ownerName, email, passwordHash } });
       const business = await tx.business.create({
@@ -70,25 +75,28 @@ export async function POST(request: Request) {
           website: data.website,
           currency: data.currency,
           timezone: data.timezone,
-          roles: {
-            create: DEFAULT_ROLES.map((role) => ({
-              name: role.name,
-              key: role.key,
-              isSystem: true,
-              permissions: { create: role.permissions.map((permissionKey) => ({ permission: { connectOrCreate: { where: { key: permissionKey }, create: { key: permissionKey, description: PERMISSIONS[permissionKey] } } } })) },
-            })),
-          },
         },
-        include: { roles: true },
       });
-      const ownerRole = business.roles.find((role) => role.key === "OWNER");
-      if (!ownerRole) throw new Error("Owner role could not be initialized.");
-      await tx.membership.create({ data: { businessId: business.id, userId: user.id, roleId: ownerRole.id } });
+
+      await tx.role.createMany({
+        data: DEFAULT_ROLES.map((role) => ({ businessId: business.id, name: role.name, key: role.key, isSystem: true })),
+      });
+      const roles = await tx.role.findMany({ where: { businessId: business.id }, select: { id: true, key: true } });
+      const roleIds = new Map(roles.map((role) => [role.key, role.id]));
+      const rolePermissions = DEFAULT_ROLES.flatMap((role) => {
+        const roleId = roleIds.get(role.key);
+        return roleId ? role.permissions.map((permissionKey) => ({ roleId, permissionKey })) : [];
+      });
+      await tx.rolePermission.createMany({ data: rolePermissions, skipDuplicates: true });
+
+      const ownerRoleId = roleIds.get("OWNER");
+      if (!ownerRoleId) throw new Error("Owner role could not be initialized.");
+      await tx.membership.create({ data: { businessId: business.id, userId: user.id, roleId: ownerRoleId } });
       await tx.branch.create({ data: { businessId: business.id, name: data.branchName, code: data.branchCode.toUpperCase(), phone: data.branchPhone ?? data.phone, address: data.branchAddress ?? data.address, latitude: data.latitude, longitude: data.longitude, businessHours: data.businessHours, warehouses: { create: { businessId: business.id, name: "Main warehouse", code: "MAIN" } } } });
       await tx.emailVerificationToken.create({ data: { tokenHash, userId: user.id, expiresAt: new Date(Date.now() + 30 * 60 * 1000) } });
       await tx.auditLog.create({ data: { businessId: business.id, userId: user.id, action: "business.registered", entity: "business", entityId: business.id, metadata: { businessType: data.businessType } } });
       return business.id;
-    });
+    }, { maxWait: 10_000, timeout: 60_000 });
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "P2002") return NextResponse.json({ error: "An account or workspace with those details already exists." }, { status: 409 });
     console.error("Business registration failed", error);
@@ -110,5 +118,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email verification is not configured or could not be delivered. Ask the administrator to configure email, then try again." }, { status: 503 });
   }
 
-  return NextResponse.json({ message: "Workspace created. Check your email to verify the account before signing in." }, { status: 201 });
+  return NextResponse.json({ message: "Workspace request submitted. Verify your email; access begins for one month after admin approval and offline payment confirmation." }, { status: 201 });
 }

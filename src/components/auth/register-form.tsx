@@ -23,7 +23,7 @@ export function RegisterForm() {
       }) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) { const message = payload.error ?? "Workspace could not be created."; setError(message); toast.error(message); return; }
-      toast.success("Workspace created. Check your email to verify your account.");
+      toast.success("Request submitted. Verify your email; workspace access starts after admin approval.");
       router.push("/verify-email?sent=1");
     } catch {
       const message = "Registration service is unavailable. Check your connection and try again.";
@@ -55,7 +55,8 @@ export function RegisterForm() {
         <label className="field-label">Confirm password<input className="input-control" name="confirmPassword" type="password" autoComplete="new-password" required /></label>
       </div>
       {error && <p role="alert" className="alert-error">{error}</p>}
-      <button className="button-primary w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin" size={17} /> : <>Create business workspace <ArrowRight size={17} /></>}</button>
+      <p className="text-center text-xs leading-5 text-slate-500">Your request will be reviewed by the platform admin. One month of access starts after approval and offline payment confirmation.</p>
+      <button className="button-primary w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin" size={17} /> : <>Submit workspace for approval <ArrowRight size={17} /></>}</button>
       <p className="text-center text-sm text-slate-500">Already registered? <Link href="/login" className="font-semibold text-emerald-800">Sign in</Link></p>
     </form>
   );

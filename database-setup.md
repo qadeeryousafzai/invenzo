@@ -18,7 +18,7 @@ In your MySQL hosting/control panel:
 
 ## 2. Configure local environment
 
-Open the ignored `.env.local` file in the project root. Keep the existing super-admin values and Auth.js secret intact. Add or update these variables with your hosting provider's exact connection information:
+Open the ignored `.env.local` file in the project root. Keep the existing super-admin values and Auth.js secret intact. Either set the provider connection string below, or provide the separate `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` values; the app, Prisma config, and seed command build a properly encoded MySQL URL from those variables when `DATABASE_URL` is absent.
 
 ```dotenv
 DATABASE_URL="mysql://USERNAME:PASSWORD@MYSQL_HOST:3306/INVENZO_DATABASE"

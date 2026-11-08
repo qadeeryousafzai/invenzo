@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { originError, originIsAllowed } from "@/lib/http";
 import { rateLimit, requestIp } from "@/lib/rate-limit";
+import { getWorkspaceAccessStatus } from "@/modules/businesses/subscription";
 
 export async function POST(request: Request) {
   if (!originIsAllowed(request)) return originError();
@@ -20,8 +21,9 @@ export async function POST(request: Request) {
   const passwordHash = parsed.data.password ? await hash(parsed.data.password, 12) : undefined;
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const invite = await tx.membershipInvite.findUnique({ where: { tokenHash }, include: { business: { select: { deletedAt: true } } } });
+      const invite = await tx.membershipInvite.findUnique({ where: { tokenHash }, include: { business: { select: { deletedAt: true, accessPausedAt: true, verificationStatus: true, subscriptionExpiresAt: true } } } });
       if (!invite || invite.acceptedAt || invite.expiresAt <= new Date() || invite.business.deletedAt) throw new Error("INVALID_INVITATION");
+      if (getWorkspaceAccessStatus(invite.business) !== "ACTIVE") throw new Error("WORKSPACE_INACTIVE");
       if (session?.user?.id && session.user.email?.toLowerCase() !== invite.email) throw new Error("INVITATION_EMAIL_MISMATCH");
       const claimed = await tx.membershipInvite.updateMany({ where: { id: invite.id, acceptedAt: null, expiresAt: { gt: new Date() } }, data: { acceptedAt: new Date() } });
       if (claimed.count !== 1) throw new Error("INVALID_INVITATION");
@@ -37,6 +39,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_INVITATION") return NextResponse.json({ error: "Invitation is invalid, expired, already used, or belongs to a different email." }, { status: 400 });
+    if (error instanceof Error && error.message === "WORKSPACE_INACTIVE") return NextResponse.json({ error: "This workspace is not currently accepting invitations." }, { status: 403 });
     if (error instanceof Error && error.message === "INVITATION_EMAIL_MISMATCH") return NextResponse.json({ error: "Sign in using the invited email address." }, { status: 403 });
     if (error instanceof Error && "code" in error && error.code === "P2002") return NextResponse.json({ error: "This account already has access to that workspace, or the email is already registered. Sign in to accept the invitation." }, { status: 409 });
     console.error("Invitation acceptance failed", error);

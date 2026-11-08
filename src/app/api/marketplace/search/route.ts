@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     const listings = await prisma.productListing.findMany({
       where: {
         marketplaceEnabled: true,
-        business: { verificationStatus: "VERIFIED", deletedAt: null },
+        business: { verificationStatus: "VERIFIED", subscriptionExpiresAt: { gt: now }, accessPausedAt: null, deletedAt: null },
         branch: { status: "ACTIVE", deletedAt: null },
         product: {
           deletedAt: null,
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
       return a.price - b.price;
     });
 
-    return NextResponse.json({ data: results.slice(0, limit), meta: { count: Math.min(results.length, limit), locationSorted: latitude !== undefined } }, { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } });
+    return NextResponse.json({ data: results.slice(0, limit), meta: { count: Math.min(results.length, limit), locationSorted: latitude !== undefined } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Marketplace search failed", error);
     const code = error instanceof Error && "code" in error ? String(error.code) : undefined;

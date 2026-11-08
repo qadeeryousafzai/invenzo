@@ -1,8 +1,10 @@
 import { PrismaClient, PlatformRole } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { loadEnvConfig } from "@next/env";
+import { configureDatabaseUrl } from "../src/lib/database-url";
 
 loadEnvConfig(process.cwd());
+configureDatabaseUrl();
 
 const prisma = new PrismaClient();
 

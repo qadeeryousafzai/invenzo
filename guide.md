@@ -51,7 +51,7 @@ For step-by-step MySQL and shadow database configuration, see [database-setup.md
 - [Personal settings](http://localhost:3000/dashboard/settings)
 - [Super-admin console](http://localhost:3000/super-admin) — requires a seeded super-admin account.
 
-The Phase 1 super-admin console supports platform summaries and business verification only. Subscription controls, user/platform management, tickets, announcements, and other administrative modules remain planned; no placeholder controls are presented as functional.
+The super-admin console supports platform summaries, workspace approval after offline payment, one-calendar-month access grants, and manual monthly renewals. Subscription expiry pauses workspace access without deleting accounts or data. User/platform management, tickets, announcements, and other administrative modules remain planned; no placeholder controls are presented as functional.
 
 ### 5. Implemented flows
 - Owner registration creates the account, private business, default permission roles, first branch, and main warehouse in one transaction. Email verification must be sent before sign-in is allowed.
@@ -82,6 +82,8 @@ The Phase 1 super-admin console supports platform summaries and business verific
 - 2026-11-02: production build passed; strict TypeScript, ESLint, and two tenant-membership isolation tests passed. Production smoke checks returned `401` for anonymous private branch reads and `403` for a cross-origin branch mutation.
 - The current Prisma 6 CLI has a high-severity advisory in its transitive configuration/merge tooling dependency. The fix suggested by npm requires a breaking Prisma 7 upgrade, so it was not forced mid-phase; review and upgrade Prisma tooling before production deployment.
 - A real MySQL migration, super-admin account creation, and authenticated end-to-end tenant tests remain blocked: this machine has no local MySQL server and no database/email credentials are configured. Fill them locally before running the migration and seed commands.
+- 2026-11-08: added safe MySQL URL construction from the existing `DB_HOST`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` environment variables, so Prisma runtime, migrations, and seed use the configured database without storing a connection URL. Verified the target database was empty, applied the foundation migration, and ensured the configured super-admin account is verified and its password matches the configured value. Unit tests, lint, typecheck, and production build passed.
+- 2026-11-08: added super-admin approval that starts a one-calendar-month paid access period, manual offline-payment renewals, and workspace-level expiry enforcement across dashboard pages, tenant APIs, workspace switching, invitations, and marketplace listings. Expired/pending workspaces keep their users and data and show an access-status screen. Added and applied the additive subscription migration; tests, typecheck, and lint passed.
 
 ## Phase 1 scope boundary
 Authentication, business setup, tenant isolation, RBAC, branches, product listing with expiry-aware stock, product discovery, and the real-data initial workspace dashboard are implemented. FEFO sales deduction, purchases, accounting, marketplace checkout, billing, and payment integrations remain later work.

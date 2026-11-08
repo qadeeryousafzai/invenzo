@@ -16,7 +16,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = z.object({ email: z.email(), password: z.string().min(1) }).safeParse(raw);
         if (!parsed.success) return null;
         const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
-        if (!user || user.disabledAt || !user.emailVerified || !user.passwordHash) return null;
+        if (!user || user.disabledAt || user.deletedAt || !user.emailVerified || !user.passwordHash) return null;
         if (!(await compare(parsed.data.password, user.passwordHash))) return null;
         return { id: user.id, name: user.name, email: user.email, platformRole: user.platformRole, tokenVersion: user.tokenVersion };
       },
@@ -29,10 +29,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.tokenVersion = user.tokenVersion ?? 0;
       }
       if (token.sub && typeof token.tokenVersion === "number") {
-        const current = await prisma.user.findUnique({ where: { id: token.sub }, select: { disabledAt: true, tokenVersion: true } });
-        if (!current || current.disabledAt || current.tokenVersion !== token.tokenVersion) {
+        const current = await prisma.user.findUnique({ where: { id: token.sub }, select: { disabledAt: true, deletedAt: true, tokenVersion: true, platformRole: true } });
+        if (!current || current.disabledAt || current.deletedAt || current.tokenVersion !== token.tokenVersion) {
           delete token.sub;
           delete token.platformRole;
+        } else {
+          token.platformRole = current.platformRole;
         }
       }
       return token;
