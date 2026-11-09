@@ -14,12 +14,13 @@ const createSchema = z.object({
   barcode: z.string().trim().max(128).optional(),
   brand: z.string().trim().max(120).optional(),
   category: z.string().trim().max(120).optional(),
+  categoryId: z.string().min(1).max(191).optional(),
   description: z.string().trim().max(4000).optional(),
   imageUrl: imageUrlSchema.optional(),
   unit: z.string().trim().min(1).max(32).default("unit"),
   branchId: z.string().min(1).max(191),
-  price: z.number().positive().max(9999999999),
-  initialQuantity: z.number().min(0).max(999999999).default(0),
+  price: z.number().positive().max(9999999999).refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 0.000001),
+  initialQuantity: z.number().min(0).max(999999999).refine((value) => Math.abs(value * 1000 - Math.round(value * 1000)) < 0.000001).default(0),
   batchNumber: z.string().trim().max(64).optional(),
   expiryDate: z.iso.datetime().optional(),
   marketplaceEnabled: z.boolean().default(true),
@@ -75,6 +76,8 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const branch = await prisma.branch.findFirst({ where: { id: data.branchId, businessId: context.businessId, deletedAt: null, status: "ACTIVE" }, select: { id: true, name: true } });
     if (!branch) return NextResponse.json({ error: "Choose an active branch in this workspace." }, { status: 400 });
+    const category = data.categoryId ? await prisma.category.findFirst({ where: { id: data.categoryId, businessId: context.businessId, deletedAt: null }, select: { id: true, name: true } }) : null;
+    if (data.categoryId && !category) return NextResponse.json({ error: "Choose a category from this workspace." }, { status: 400 });
     const expiryDate = data.expiryDate ? new Date(data.expiryDate) : null;
     if (expiryDate && expiryDate.getTime() <= Date.now() && data.initialQuantity > 0) return NextResponse.json({ error: "Opening stock cannot be expired." }, { status: 400 });
     const batchNumber = data.batchNumber?.trim() || `OPEN-${randomBytes(5).toString("hex").toUpperCase()}`;
@@ -88,6 +91,7 @@ export async function POST(request: Request) {
           barcode: data.barcode?.trim() || null,
           brand: data.brand || null,
           category: data.category || null,
+          categoryId: category?.id,
           description: data.description || null,
           imageUrl: data.imageUrl || null,
           unit: data.unit,
@@ -105,7 +109,8 @@ export async function POST(request: Request) {
         },
       });
       if (data.initialQuantity > 0) {
-        await tx.inventoryBatch.create({ data: { businessId: context.businessId, productListingId: listing.id, batchNumber, quantityRemaining: new Prisma.Decimal(data.initialQuantity.toFixed(3)), expiryDate } });
+        const batch = await tx.inventoryBatch.create({ data: { businessId: context.businessId, productListingId: listing.id, batchNumber, quantityRemaining: new Prisma.Decimal(data.initialQuantity.toFixed(3)), expiryDate } });
+        await tx.stockMovement.create({ data: { businessId: context.businessId, productListingId: listing.id, inventoryBatchId: batch.id, actorId: context.userId, type: "OPENING", quantityChange: batch.quantityRemaining, reference: batchNumber, note: "Opening stock" } });
       }
       await tx.auditLog.create({ data: { businessId: context.businessId, userId: context.userId, action: "product.created", entity: "product", entityId: product.id, metadata: { branchId: branch.id } } });
       return { ...product, listings: [{ ...listing, branch }] };

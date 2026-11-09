@@ -1,6 +1,6 @@
 # Invenzo
 
-Multi-tenant inventory and product-discovery SaaS, being developed incrementally. The current milestone is Phase 1: authentication, business workspaces, tenant isolation, RBAC, and branch management. Later modules are not yet implemented.
+Multi-tenant inventory and product-discovery SaaS with business registration, platform account lifecycle controls, tenant-scoped RBAC, inventory operations, and business reporting.
 
 ## Requirements
 - Node.js 20.19+ (Node.js 24 LTS recommended)
@@ -15,7 +15,7 @@ Multi-tenant inventory and product-discovery SaaS, being developed incrementally
 4. Set `SUPER_ADMIN_EMAIL` and a strong unique `SUPER_ADMIN_PASSWORD` (12+ characters) to create the platform administrator.
 5. Install dependencies with `pnpm install` (or `npm install`). The workspace config permits only Prisma/esbuild's required build scripts.
 6. Generate Prisma Client with `pnpm exec prisma generate` (or `npm run db:generate`).
-7. Create/apply the development schema with `pnpm exec prisma migrate dev --name foundation`.
+7. Apply the committed migrations with `pnpm db:deploy` to a dedicated, empty MySQL database. Do not run these migrations against another application's database.
 8. Seed the super-admin with `pnpm db:seed` (or `npm run db:seed`). The configured account is email-verified and can sign in at the admin link below.
 9. Run `pnpm dev` (or `npm run dev`) and open http://localhost:3000.
 
@@ -39,16 +39,24 @@ For deployment to Hostinger Node.js hosting with Hostinger MySQL, see [hostinger
 - Team and roles: http://localhost:3000/dashboard/employees
 - Business profile: http://localhost:3000/dashboard/business
 - Product catalog and opening stock: http://localhost:3000/dashboard/products
+- Categories: http://localhost:3000/dashboard/categories
+- Inventory and stock movement history: http://localhost:3000/dashboard/inventory
+- Purchases: http://localhost:3000/dashboard/purchases
+- Sales: http://localhost:3000/dashboard/sales
+- Customers and suppliers: http://localhost:3000/dashboard/customers and `/dashboard/suppliers`
+- Expenses and reports: http://localhost:3000/dashboard/expenses and `/dashboard/reports`
+- Business notifications: http://localhost:3000/dashboard/notifications
 - Personal settings: http://localhost:3000/dashboard/settings
 - Super-admin console: http://localhost:3000/super-admin (requires the seeded account)
 
-The super-admin console lists workspace requests, approves access for one calendar month after offline payment is confirmed, and manually renews access for another month. Expiry pauses all workspace members without deleting their accounts or business data. Other platform management modules are planned, not yet functional.
+The super-admin console reviews registrations and manages the full account lifecycle, including approval, rejection, suspension, timed restriction, restoration, expiry extension, and soft deletion. Admins can review account history, audit activity, notifications, and configurable expiry defaults. Business workspaces include categories, inventory movements, customers, suppliers, purchases, sales, employees through the existing membership/role system, expenses, and reports. Sales and stock changes use tenant-scoped transactions; sales allocate unexpired stock by earliest expiry date.
 
 ## Useful scripts
 - `npm run dev` — local Next.js development server.
 - `npm run lint` — ESLint.
 - `npm run typecheck` — TypeScript check without emitting files.
 - `npm test` — automated unit tests.
+- `pnpm test:integration` — database lifecycle, tenant foreign-key, scheduler, and data-retention checks. Set `TEST_DATABASE_URL` to a dedicated database whose name includes `test`; apply the committed migrations to that disposable database first. The test deletes only its uniquely named fixture businesses.
 - `npm run build` — production build.
 - `npm run db:generate` — Prisma Client generation.
 - `npm run db:migrate` — apply a development migration (Prisma prompts for the migration name if needed).
@@ -62,6 +70,7 @@ The super-admin console lists workspace requests, approves access for one calend
 - Use HTTPS and secure production cookie settings behind a trusted proxy. Store secrets in a managed secret store.
 - Configure recurring encrypted MySQL backups and regularly test restoration. Keep backups access-controlled and retention-limited.
 - Avoid using `prisma migrate dev` against production; deploy reviewed migrations with `prisma migrate deploy`.
+- Configure the daily account-maintenance cron call documented in [hostinger-deployment.md](hostinger-deployment.md) so expiry state, timed restrictions, and advance notices are processed.
 - See [guide.md](guide.md) for the change-by-change implementation guide and phase boundary.
 # invenzo
 # invenzo

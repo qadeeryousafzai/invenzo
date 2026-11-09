@@ -6,9 +6,10 @@ import { LoaderCircle, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 type Branch = { id: string; name: string; code: string };
+type Category = { id: string; name: string };
 type ProductRow = { id: string; name: string; sku: string; category: string | null; unit: string; listings: { id: string; price: string; marketplaceEnabled: boolean; branch: { name: string }; remainingQuantity: number }[] };
 
-export function ProductManager({ branches, products, canCreate }: { branches: Branch[]; products: ProductRow[]; canCreate: boolean }) {
+export function ProductManager({ branches, categories = [], products, canCreate }: { branches: Branch[]; categories?: Category[]; products: ProductRow[]; canCreate: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -23,7 +24,7 @@ export function ProductManager({ branches, products, canCreate }: { branches: Br
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: values.get("name"), sku: values.get("sku"), barcode: values.get("barcode") || undefined,
-        brand: values.get("brand") || undefined, category: values.get("category") || undefined,
+        brand: values.get("brand") || undefined, categoryId: values.get("categoryId") || undefined,
         description: values.get("description") || undefined, imageUrl: values.get("imageUrl") || undefined,
         unit: values.get("unit"), branchId: values.get("branchId"), price: Number(values.get("price")),
         initialQuantity: Number(values.get("quantity")), batchNumber: values.get("batchNumber") || undefined,
@@ -45,7 +46,7 @@ export function ProductManager({ branches, products, canCreate }: { branches: Br
     {canCreate && <section className="surface-card p-5 sm:p-6"><div className="mb-5"><p className="text-xs font-bold tracking-[.15em] text-emerald-800">CATALOG</p><h2 className="mt-2 text-lg font-semibold text-slate-950">Add a product and opening stock</h2><p className="mt-1 text-sm text-slate-500">Stock is recorded as a batch. Expired batches are excluded from public search.</p></div><form onSubmit={submit} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <label className="field-label">Product name<input className="input-control" name="name" required minLength={2} maxLength={191} /></label>
       <label className="field-label">SKU<input className="input-control" name="sku" required maxLength={64} /></label>
-      <label className="field-label">Category<input className="input-control" name="category" maxLength={120} placeholder="e.g. Household" /></label>
+      <label className="field-label">Category<select className="input-control" name="categoryId" defaultValue=""><option value="">Uncategorized</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
       <label className="field-label">Brand<input className="input-control" name="brand" maxLength={120} /></label>
       <label className="field-label">Barcode<input className="input-control" name="barcode" maxLength={128} /></label>
       <label className="field-label">Unit<input className="input-control" name="unit" maxLength={32} defaultValue="unit" required /></label>

@@ -14,7 +14,6 @@ export function WorkspaceAccessNotice({ businessName, status, expiresAt, reason 
 }) {
   const expired = status === "EXPIRED";
   const rejected = status === "REJECTED";
-  const pending = status === "PENDING_APPROVAL";
   const deleted = status === "DELETED";
   const temporary = status === "TEMPORARILY_BLOCKED";
   const Icon = expired || status === "SUSPENDED" || temporary || deleted ? LockKeyhole : rejected ? ShieldCheck : Clock3;

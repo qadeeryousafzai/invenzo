@@ -25,5 +25,5 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
   const workspaces = context.memberships.map((membership) => ({ id: membership.businessId, name: membership.business.name, role: membership.role.name }));
   const unreadNotifications = await prisma.notification.count({ where: { audience: "BUSINESS_USER", userId: context.userId, businessId: { in: context.memberships.map((membership) => membership.businessId) }, readAt: null } });
-  return <WorkspaceShell businessName={active.business.name} businessType={active.business.type} activeId={active.businessId} workspaces={workspaces} userName={session?.user.name ?? session?.user.email ?? "Account"} roleName={active.role.name} unreadNotifications={unreadNotifications}>{children}</WorkspaceShell>;
+  return <WorkspaceShell businessName={active.business.name} businessType={active.business.type} activeId={active.businessId} workspaces={workspaces} userName={session?.user.name ?? session?.user.email ?? "Account"} roleName={active.role.name} unreadNotifications={unreadNotifications} permissions={[...context.permissions]}>{children}</WorkspaceShell>;
 }

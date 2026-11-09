@@ -1,0 +1,8 @@
+export default function SuperAdminStockLevelsPage() {
+  return (
+    <div className="min-h-screen bg-[#f7f8f6] p-8">
+      <h1 className="text-2xl font-bold text-slate-950 mb-6">Stock Levels</h1>
+      <p className="text-slate-600">Manage stock levels.</p>
+    </div>
+  );
+}

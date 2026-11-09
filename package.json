@@ -13,6 +13,7 @@
     "hostinger:build": "npm run clean:next-config && npm run build",
     "lint": "eslint",
     "test": "node --import tsx --test tests/unit/*.test.mjs",
+    "test:integration": "node --import tsx --test tests/integration/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

@@ -1,6 +1,5 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
-import { AdminHeader } from "@/components/super-admin/admin-header";
 import { NotificationInbox } from "@/components/notifications/notification-inbox";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/tenant-context";
@@ -14,5 +13,14 @@ export default async function AdminNotificationsPage() {
     prisma.notification.findMany({ where, include: { business: { select: { id: true, name: true } } }, orderBy: { createdAt: "desc" }, take: 100 }),
     prisma.notification.count({ where: { ...where, readAt: null } }),
   ]);
-  return <div className="min-h-screen bg-[#f7f8f6]"><AdminHeader name={admin.name ?? admin.email ?? "Administrator"} unreadNotifications={unreadCount} /><main className="mx-auto max-w-5xl space-y-6 px-5 py-8 sm:px-8"><div><p className="text-xs font-bold tracking-[.15em] text-slate-500">PLATFORM UPDATES</p><h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Notifications</h1><p className="mt-2 text-sm text-slate-500">Registration, account state, and expiry events for the platform.</p></div><NotificationInbox notifications={notifications.map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null }))} unreadCount={unreadCount} audience="platform" /></main></div>;
+  return (
+    <main className="mx-auto max-w-5xl space-y-6 px-5 py-8 sm:px-8">
+      <div>
+        <p className="text-xs font-bold tracking-[.15em] text-slate-500">PLATFORM UPDATES</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Notifications</h1>
+        <p className="mt-2 text-sm text-slate-500">Registration, account state, and expiry events for the platform.</p>
+      </div>
+      <NotificationInbox notifications={notifications.map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null }))} unreadCount={unreadCount} audience="platform" />
+    </main>
+  );
 }

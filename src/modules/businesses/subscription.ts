@@ -12,12 +12,12 @@ export type WorkspaceAccessStatus = BusinessAccountStatus;
 /** Temporary blocks expire automatically; account expiry still takes precedence over access. */
 export function getWorkspaceAccessStatus(business: WorkspaceSubscription, now = new Date()): WorkspaceAccessStatus {
   if (business.deletedAt || business.accountStatus === "DELETED") return "DELETED";
+  if (["ACTIVE", "SUSPENDED", "TEMPORARILY_BLOCKED"].includes(business.accountStatus) && business.subscriptionExpiresAt && business.subscriptionExpiresAt <= now) return "EXPIRED";
   if (business.accountStatus === "TEMPORARILY_BLOCKED" && (!business.statusUntil || business.statusUntil > now)) return "TEMPORARILY_BLOCKED";
   if (business.accountStatus === "TEMPORARILY_BLOCKED" && business.statusUntil && business.statusUntil <= now) {
     return business.subscriptionExpiresAt && business.subscriptionExpiresAt <= now ? "EXPIRED" : "ACTIVE";
   }
   if (business.accountStatus === "ACTIVE" && (!business.subscriptionExpiresAt || business.subscriptionExpiresAt <= now)) return "EXPIRED";
-  if (business.accountStatus === "SUSPENDED" && business.subscriptionExpiresAt && business.subscriptionExpiresAt <= now) return "SUSPENDED";
   return business.accountStatus;
 }
 

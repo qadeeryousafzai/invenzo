@@ -2,7 +2,6 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Building2, CalendarDays, Clock3, Mail, MapPin, Phone, ShieldCheck, UserRound } from "lucide-react";
-import { AdminHeader } from "@/components/super-admin/admin-header";
 import { BusinessActions } from "@/components/super-admin/business-actions";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/tenant-context";
@@ -32,22 +31,31 @@ export default async function BusinessManagementPage({ params }: PageProps<"/sup
   const remainingDays = business.subscriptionExpiresAt && status === "ACTIVE"
     ? Math.max(0, Math.ceil((business.subscriptionExpiresAt.getTime() - now.getTime()) / 86_400_000))
     : 0;
-  const unreadNotifications = await prisma.notification.count({ where: { audience: "PLATFORM_ADMIN", OR: [{ userId: admin.id }, { userId: null }], readAt: null } });
   const activity = [
     { label: "Team members", value: business._count.memberships },
     { label: "Branches", value: business._count.branches },
     { label: "Products", value: business._count.products },
   ];
 
-  return <div className="min-h-screen bg-[#f7f8f6]">
-    <AdminHeader name={admin.name ?? admin.email ?? "Administrator"} unreadNotifications={unreadNotifications} />
+  return (
     <main className="mx-auto max-w-7xl space-y-6 px-5 py-7 sm:px-8 sm:py-9">
-      <Link href="/super-admin" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900"><ArrowLeft size={14} /> Back to business management</Link>
+      <Link href="/super-admin" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900">
+        <ArrowLeft size={14} /> Back to business management
+      </Link>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <section className="surface-card min-w-0 flex-1 p-5 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-800"><Building2 size={21} /></span><div><p className="text-[10px] font-bold tracking-[.14em] text-slate-400">BUSINESS ACCOUNT</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{business.name}</h1><p className="mt-1 text-xs capitalize text-slate-500">{business.type.replaceAll("_", " ").toLowerCase()} · {business.slug}</p></div></div>
-            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700">{status.toLowerCase().replaceAll("_", " ")}</span>
+            <div className="flex items-start gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-800"><Building2 size={21} /></span>
+              <div>
+                <p className="text-[10px] font-bold tracking-[.14em] text-slate-400">BUSINESS ACCOUNT</p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{business.name}</h1>
+                <p className="mt-1 text-xs capitalize text-slate-500">{business.type.replaceAll("_", " ").toLowerCase()} · {business.slug}</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+              {status.toLowerCase().replaceAll("_", " ")}
+            </span>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -78,7 +86,7 @@ export default async function BusinessManagementPage({ params }: PageProps<"/sup
         {business.auditLogs.length ? <div className="divide-y divide-slate-100">{business.auditLogs.map((entry) => <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3"><div><p className="text-xs font-semibold text-slate-700">{entry.action.replaceAll(".", " ")}</p><p className="mt-1 text-[10px] text-slate-500">{entry.user?.name ?? entry.user?.email ?? "System"}</p></div><time className="text-[10px] text-slate-400">{dateLabel(entry.createdAt)}</time></div>)}</div> : <p className="px-5 py-10 text-center text-sm text-slate-500">No administrative audit entries.</p>}
       </section>
     </main>
-  </div>;
+  );
 }
 
 function Info({ icon: Icon, label, value, detail }: { icon: typeof Building2; label: string; value: string; detail: string }) {
