@@ -37,11 +37,11 @@ export function WorkspaceAccessNotice({ businessName, status, expiresAt, reason 
   return (
     <main className="grid min-h-screen place-items-center bg-[#f7f8f6] px-5 py-12">
       <section className="surface-card w-full max-w-xl p-7 sm:p-10">
-        <span className={`grid size-12 place-items-center rounded-2xl ${expired || status === "SUSPENDED" || temporary || deleted ? "bg-orange-50 text-orange-800" : rejected ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}><Icon size={22} /></span>
-        <p className="mt-6 text-xs font-bold tracking-[.14em] text-slate-500">WORKSPACE ACCESS</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{title}</h1>
-        <p className="mt-2 text-sm text-slate-500">{businessName}</p>
-        <p className="mt-6 text-sm leading-6 text-slate-600">{description}</p>
+        <span className={`grid size-12 place-items-center rounded-2xl ${expired || status === "SUSPENDED" || temporary || deleted ? "bg-orange-50 text-orange-800" : rejected ? "bg-red-50 text-red-700" : "bg-gray-100 text-black"}`}><Icon size={22} /></span>
+        <p className="mt-6 text-xs font-bold tracking-[.14em] text-gray-600">WORKSPACE ACCESS</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-black">{title}</h1>
+        <p className="mt-2 text-sm text-gray-600">{businessName}</p>
+        <p className="mt-6 text-sm leading-6 text-gray-600">{description}</p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Link href="/" className="button-secondary">Back to home</Link>
         </div>

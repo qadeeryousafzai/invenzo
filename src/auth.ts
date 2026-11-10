@@ -51,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!current || current.disabledAt || current.deletedAt || current.tokenVersion !== token.tokenVersion) {
           delete token.sub;
           delete token.platformRole;
-        } else {
+        } else {    
           const now = new Date();
           const hasActiveBusiness = current.platformRole === PlatformRole.SUPER_ADMIN || await prisma.membership.count({
             where: {
