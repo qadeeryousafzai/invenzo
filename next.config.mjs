@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // keep your existing options here
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        "invenzoapp.com",
+        "www.invenzoapp.com",
+      ],
+    },
+  },
 };
+
 
 export default nextConfig;

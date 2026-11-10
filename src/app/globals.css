@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #111111;
+  --background: #f8fafc;
+  --foreground: #1f2937;
   --surface: #ffffff;
-  --muted: #4b5563;
+  --muted: #64748b;
   --line: #e5e7eb;
-  --brand: #111111;
-  --brand-gradient: linear-gradient(120deg, #111111 0%, #1f2937 100%);
+  --brand: #16a34a;
+  --brand-accent: #b7e532;
+  --brand-gradient: linear-gradient(120deg, #16a34a 0%, #b7e532 100%);
   --card: #ffffff;
-  --card-foreground: #111111;
+  --card-foreground: #1f2937;
   --popover: #ffffff;
-  --popover-foreground: #111111;
-  --primary: #111111;
+  --popover-foreground: #1f2937;
+  --primary: #16a34a;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #111111;
-  --accent: #f5f5f5;
-  --accent-foreground: #111111;
-  --destructive: #111111;
+  --secondary: #ffffff;
+  --secondary-foreground: #1f2937;
+  --accent: #f8fafc;
+  --accent-foreground: #1f2937;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #111111;
+  --ring: #16a34a;
   --radius: 0.75rem;
 }
 
@@ -33,7 +34,8 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-brand: var(--brand);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --color-brand-accent: var(--brand-accent);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, monospace;
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -55,54 +57,105 @@
 * { box-sizing: border-box; }
 html { color-scheme: light; scroll-behavior: smooth; }
 body {
-  background: #ffffff;
-  color: #111111;
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f8fafc;
+  color: #1f2937;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+.surface-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.03);
+}
 .input-control {
   display: block;
   width: 100%;
-  margin-top: .5rem;
-  border: 1px solid #d1d5db;
-  border-radius: .7rem;
+  margin-top: .45rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   background: #ffffff;
-  padding: .8rem .9rem;
-  color: #111111;
+  padding: .72rem .85rem;
+  color: #111827;
   font-size: .9rem;
+  line-height: 1.4;
   outline: none;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color .15s, box-shadow .15s, background .15s;
 }
-.input-control:focus { border-color: #111111; box-shadow: 0 0 0 2px #11111114; }
-.input-control::placeholder { color: #6b7280; }
-.field-label { display: block; color: #374151; font-size: .82rem; font-weight: 600; }
-.field-hint { display: block; margin-top: .4rem; color: #6b7280; font-size: .72rem; font-weight: 400; line-height: 1.5; }
+.input-control:hover { border-color: #d1d5db; }
+.input-control:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(183, 229, 50, 0.35); }
+.input-control::placeholder { color: #94a3b8; }
+.field-label { display: block; color: #334155; font-size: .82rem; font-weight: 600; }
+.field-hint { display: block; margin-top: .35rem; color: #64748b; font-size: .72rem; font-weight: 400; line-height: 1.5; }
+
 .button-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .55rem;
-  border: 1px solid #111111;
-  border-radius: .7rem;
-  background: #111111;
-  padding: .8rem 1rem;
+  gap: .5rem;
+  border: 1px solid #16a34a;
+  border-radius: 12px;
+  background: #16a34a;
+  padding: .72rem 1rem;
   color: #ffffff;
-  font-size: .9rem;
-  font-weight: 650;
-  transition: background .15s, transform .15s;
+  font-size: .875rem;
+  font-weight: 600;
+  transition: background .15s, border-color .15s, box-shadow .15s, transform .15s;
 }
-.button-primary:hover:not(:disabled) { background: #1f2937; transform: translateY(-1px); }
-.button-primary:disabled { cursor: not-allowed; opacity: .55; }
-.button-secondary { border: 1px solid #d1d5db; border-radius: .65rem; background: #ffffff; padding: .65rem .85rem; color: #111111; font-size: .85rem; font-weight: 600; }
-.button-secondary:hover:not(:disabled) { background: #f9fafb; }
-.field-label input:focus-visible, .button-primary:focus-visible, .button-secondary:focus-visible, a:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
-.alert-error { border: 1px solid #d1d5db; border-left: 3px solid #111111; border-radius: .7rem; background: #ffffff; padding: .8rem .9rem; color: #111111; font-size: .82rem; line-height: 1.5; }
-.alert-success { border: 1px solid #d1d5db; border-left: 3px solid #111111; border-radius: .7rem; background: #ffffff; padding: .8rem .9rem; color: #111111; font-size: .82rem; line-height: 1.5; }
-.surface-card { border: 1px solid #e5e7eb; border-radius: 1rem; background: #ffffff; box-shadow: 0 1px 2px #0000000a; }
-.install-button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; border: 1px solid #d1d5db; border-radius: .7rem; background: #ffffff; padding: .58rem .8rem; color: #111111; font-size: .82rem; font-weight: 700; }
-.install-button:hover { background: #f9fafb; }
-.install-help { position: absolute; right: 0; top: calc(100% + .55rem); z-index: 40; width: min(17rem, 80vw); border: 1px solid #e5e7eb; border-radius: .8rem; background: #ffffff; padding: .8rem; color: #111111; font-size: .75rem; line-height: 1.5; box-shadow: 0 8px 24px #00000012; }
+.button-primary:hover:not(:disabled) { background: #15803d; border-color: #15803d; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22, 163, 74, 0.18); }
+.button-primary:disabled { cursor: not-allowed; opacity: .55; box-shadow: none; transform: none; }
+
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: .68rem .9rem;
+  color: #334155;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.button-secondary:hover:not(:disabled) { background: #f8fafc; border-color: #d1d5db; color: #111827; }
+.button-secondary:disabled { cursor: not-allowed; opacity: .55; }
+
+.button-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 1px solid #b7e532;
+  border-radius: 12px;
+  background: #b7e532;
+  padding: .68rem .9rem;
+  color: #14532d;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.field-label input:focus-visible,
+.field-label select:focus-visible,
+.field-label textarea:focus-visible,
+.button-primary:focus-visible,
+.button-secondary:focus-visible,
+a:focus-visible,
+button:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
+
+.alert-error { border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 12px; background: #fff; padding: .85rem .95rem; color: #7f1d1d; font-size: .84rem; line-height: 1.5; }
+.alert-success { border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 12px; background: #fff; padding: .85rem .95rem; color: #14532d; font-size: .84rem; line-height: 1.5; }
+
+.install-button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; padding: .55rem .8rem; color: #334155; font-size: .82rem; font-weight: 600; }
+.install-button:hover { background: #f8fafc; border-color: #d1d5db; }
+.install-help { position: absolute; right: 0; top: calc(100% + .55rem); z-index: 40; width: min(17rem, 80vw); border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; padding: .8rem; color: #334155; font-size: .75rem; line-height: 1.5; box-shadow: 0 10px 30px rgba(15,23,42,0.08); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 2px solid #f8fafc; }
+::-webkit-scrollbar-track { background: transparent; }
+
 .animate-in { animation: rise-in .25s ease both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
