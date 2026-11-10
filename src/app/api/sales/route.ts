@@ -18,6 +18,8 @@ const schema = z.object({
   notes: z.string().trim().max(1000).optional(),
   discount: z.number().min(0).max(999999999).optional(),
   tax: z.number().min(0).max(999999999).optional(),
+  paymentMethod: z.enum(["cash", "card", "other"]).optional(),
+  amountTendered: z.number().min(0).max(999999999).optional(),
   items: z.array(itemSchema).min(1).max(50),
 }).strict();
 
@@ -73,11 +75,23 @@ export async function POST(request: Request) {
     const requestedTax = money(Math.max(0, Number(data.tax ?? 0)));
     const tax = Prisma.Decimal.min(requestedTax, taxable);
     const total = money(taxable.plus(tax));
-    const notes = [data.notes?.trim(), discount.greaterThan(0) ? `Discount: ${discount.toFixed(2)}` : "", tax.greaterThan(0) ? `Tax: ${tax.toFixed(2)}` : ""].filter(Boolean).join(" | ") || undefined;
+    const paymentMethod = data.paymentMethod ?? "cash";
+    const tendered = money(Math.max(Number(data.amountTendered ?? 0), total.toNumber()));
+    if (paymentMethod === "cash" && tendered.lessThan(total)) {
+      return NextResponse.json({ error: "Cash received must be at least the grand total." }, { status: 400 });
+    }
+    const change = paymentMethod === "cash" ? money(tendered.minus(total)) : money(0);
+    const notes = [
+      data.notes?.trim(),
+      discount.greaterThan(0) ? `Discount: ${discount.toFixed(2)}` : "",
+      tax.greaterThan(0) ? `Tax: ${tax.toFixed(2)}` : "",
+      `Payment: ${paymentMethod.toUpperCase()}`,
+      paymentMethod === "cash" ? `Received: ${tendered.toFixed(2)}` : "",
+      paymentMethod === "cash" ? `Change: ${change.toFixed(2)}` : "",
+    ].filter(Boolean).join(" | ") || undefined;
     const reference = `SO-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(3).toString("hex").toUpperCase()}`;
 
     const result = await prisma.$transaction(async (tx) => {
-      // Preflight stock to fail clearly before mutating.
       for (const row of lineTotals) {
         const now = new Date();
         const batches = await tx.inventoryBatch.findMany({ where: { businessId: context.businessId, productListingId: row.item.productListingId, archivedAt: null, quantityRemaining: { gt: 0 }, OR: [{ expiryDate: null }, { expiryDate: { gt: now } }] }, orderBy: [{ expiryDate: "asc" }, { receivedAt: "asc" }], select: { id: true, quantityRemaining: true, expiryDate: true, receivedAt: true } });
@@ -107,10 +121,10 @@ export async function POST(request: Request) {
           const amount = new Prisma.Decimal(allocation.quantity.toFixed(3));
           const update = await tx.inventoryBatch.updateMany({ where: { id: allocation.batchId, businessId: context.businessId, quantityRemaining: { gte: amount } }, data: { quantityRemaining: { decrement: amount } } });
           if (update.count !== 1) throw new InsufficientStockError();
-          await tx.stockMovement.create({ data: { businessId: context.businessId, productListingId: item.productListingId, inventoryBatchId: allocation.batchId, actorId: context.userId, type: "SALE", quantityChange: amount.negated(), reference: sale.reference, note: "Stock sold (POS)" } });
+          await tx.stockMovement.create({ data: { businessId: context.businessId, productListingId: item.productListingId, inventoryBatchId: allocation.batchId, actorId: context.userId, type: "SALE", quantityChange: amount.negated(), reference: sale.reference, note: `Stock sold (POS, ${paymentMethod})` } });
         }
       }
-      await tx.auditLog.create({ data: { businessId: context.businessId, userId: context.userId, action: "sale.created", entity: "sale", entityId: sale.id, metadata: { total: total.toFixed(2), subtotal: subtotal.toFixed(2), discount: discount.toFixed(2), tax: tax.toFixed(2), itemCount: data.items.length } } });
+      await tx.auditLog.create({ data: { businessId: context.businessId, userId: context.userId, action: "sale.created", entity: "sale", entityId: sale.id, metadata: { total: total.toFixed(2), subtotal: subtotal.toFixed(2), discount: discount.toFixed(2), tax: tax.toFixed(2), itemCount: data.items.length, paymentMethod } } });
       return sale;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     return NextResponse.json({ data: result }, { status: 201 });

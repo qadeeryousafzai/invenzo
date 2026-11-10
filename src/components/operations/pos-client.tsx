@@ -2,16 +2,23 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Barcode, LoaderCircle, Minus, Plus, Printer, ScanBarcode, Search, ShoppingCart, Trash2, UserPlus, X } from "lucide-react";
+import {
+  Banknote, Barcode, CreditCard, LoaderCircle, Minus, PauseCircle, Pill, Plus, Printer, ScanBarcode,
+  Search, ShoppingCart, Trash2, UserPlus, Wallet, X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 type Branch = { id: string; name: string };
 type Customer = { id: string; name: string; phone: string | null };
-type Item = { id: string; productId: string; name: string; sku: string; barcode: string; brand: string; category: string; unit: string; imageUrl: string; description: string; branchId: string; branchName: string; price: number; availableStock: number };
-type CartLine = { listingId: string; name: string; sku: string; unit: string; price: number; quantity: number; max: number };
-type Receipt = { reference: string; total: number; subtotal: number; discount: number; tax: number; items: { name: string; quantity: number; unitPrice: number; lineTotal: number }[]; customer: string; branch: string; soldAt: string };
+type Item = { id: string; productId: string; name: string; sku: string; barcode: string; brand: string; category: string; unit: string; strength: string; imageUrl: string; branchId: string; branchName: string; price: number; availableStock: number };
+type CartLine = { listingId: string; name: string; sku: string; unit: string; strength: string; price: number; quantity: number; max: number };
+type PaymentMethod = "cash" | "card" | "other";
+type HeldOrder = { id: string; label: string; branchId: string; customerId: string; cart: CartLine[]; discount: string; taxRate: string; notes: string; paymentMethod: PaymentMethod; amountTendered: string };
+type Receipt = { reference: string; total: number; subtotal: number; discount: number; tax: number; paymentMethod: PaymentMethod; amountTendered: number; change: number; items: { name: string; quantity: number; unitPrice: number; lineTotal: number }[]; customer: string; branch: string; soldAt: string };
 
-export function PosClient({ branches, customers: initialCustomers, catalog, categories, currency, business, canCreateCustomer }: { branches: Branch[]; customers: Customer[]; catalog: Item[]; categories: string[]; currency: string; business: { name: string; address: string; phone: string }; canCreateCustomer: boolean }) {
+export function PosClient({ branches, customers: initialCustomers, catalog, categories, currency, business, canCreateCustomer }: {
+  branches: Branch[]; customers: Customer[]; catalog: Item[]; categories: string[]; currency: string; business: { name: string; address: string; phone: string }; canCreateCustomer: boolean;
+}) {
   const router = useRouter();
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [query, setQuery] = useState("");
@@ -22,18 +29,21 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
   const [discount, setDiscount] = useState("0");
   const [taxRate, setTaxRate] = useState("0");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [amountTendered, setAmountTendered] = useState("");
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [held, setHeld] = useState<{ branchId: string; customerId: string; cart: CartLine[]; discount: string; taxRate: string; notes: string } | null>(null);
+  const [heldOrders, setHeldOrders] = useState<HeldOrder[]>([]);
   const barcodeRef = useRef<HTMLInputElement>(null);
 
   const branchItems = useMemo(() => catalog.filter((item) => item.branchId === branchId), [catalog, branchId]);
+  const categoryOptions = useMemo(() => ["All", ...Array.from(new Set(categories.filter(Boolean))).sort()], [categories]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return branchItems.filter((item) => {
       if (category !== "All" && item.category !== category) return false;
       if (!q) return true;
-      return [item.name, item.sku, item.barcode, item.brand, item.category, item.description].some((v) => v.toLowerCase().includes(q));
+      return [item.name, item.sku, item.barcode, item.brand, item.category, item.strength, item.unit].some((v) => v.toLowerCase().includes(q));
     });
   }, [branchItems, query, category]);
 
@@ -42,9 +52,12 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
   const taxable = Math.max(0, subtotal - discountAmount);
   const taxAmount = taxable * (Math.max(0, Number(taxRate) || 0) / 100);
   const total = taxable + taxAmount;
+  const tendered = paymentMethod === "cash" ? Math.max(0, Number(amountTendered) || 0) : total;
+  const change = paymentMethod === "cash" ? Math.max(0, tendered - total) : 0;
   const money = (n: number) => `${currency} ${n.toFixed(2)}`;
 
   function add(item: Item) {
+    if (!branchId) { toast.error("Select a branch first."); return; }
     if (item.availableStock <= 0) { toast.error("No available stock for this medicine."); return; }
     setCart((prev) => {
       const existing = prev.find((l) => l.listingId === item.id);
@@ -52,7 +65,7 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
         if (existing.quantity >= item.availableStock) { toast.error("Cannot exceed available stock."); return prev; }
         return prev.map((l) => l.listingId === item.id ? { ...l, quantity: Math.min(item.availableStock, l.quantity + 1) } : l);
       }
-      return [...prev, { listingId: item.id, name: item.name, sku: item.sku, unit: item.unit, price: item.price, quantity: 1, max: item.availableStock }];
+      return [...prev, { listingId: item.id, name: item.name, sku: item.sku, unit: item.unit, strength: item.strength, price: item.price, quantity: 1, max: item.availableStock }];
     });
   }
 
@@ -75,15 +88,16 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
 
   function hold() {
     if (!cart.length) { toast.error("Cart is empty."); return; }
-    setHeld({ branchId, customerId, cart, discount, taxRate, notes });
-    setCart([]); setDiscount("0"); setTaxRate("0"); setNotes("");
+    const label = `Held ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · ${cart.length} item${cart.length === 1 ? "" : "s"}`;
+    setHeldOrders((prev) => [{ id: crypto.randomUUID(), label, branchId, customerId, cart, discount, taxRate, notes, paymentMethod, amountTendered }, ...prev].slice(0, 10));
+    setCart([]); setDiscount("0"); setTaxRate("0"); setNotes(""); setAmountTendered(""); setPaymentMethod("cash");
     toast.success("Order held.");
   }
 
-  function resumeHeld() {
-    if (!held) return;
-    if (held.branchId !== branchId) { toast.error("Switch to the held order's branch to resume it."); return; }
-    setCustomerId(held.customerId); setCart(held.cart); setDiscount(held.discount); setTaxRate(held.taxRate); setNotes(held.notes); setHeld(null);
+  function resumeHeld(order: HeldOrder) {
+    if (order.branchId !== branchId) { setBranchId(order.branchId); }
+    setCustomerId(order.customerId); setCart(order.cart); setDiscount(order.discount); setTaxRate(order.taxRate); setNotes(order.notes); setPaymentMethod(order.paymentMethod); setAmountTendered(order.amountTendered);
+    setHeldOrders((prev) => prev.filter((h) => h.id !== order.id));
     toast.success("Held order restored.");
   }
 
@@ -99,11 +113,18 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
     toast.success("Customer added.");
   }
 
+  function clearCart() {
+    if (busy) return;
+    setCart([]); setDiscount("0"); setTaxRate("0"); setNotes(""); setAmountTendered("");
+  }
+
   async function completeSale() {
     if (!branchId) { toast.error("Select a branch."); return; }
     if (!cart.length) { toast.error("Add at least one medicine."); return; }
     if (cart.some((l) => l.quantity > l.max || l.quantity <= 0)) { toast.error("Fix quantities before completing the sale."); return; }
     if (discountAmount > subtotal) { toast.error("Discount cannot exceed subtotal."); return; }
+    if (paymentMethod === "cash" && tendered < total) { toast.error("Cash received must be at least the grand total."); return; }
+
     setBusy(true);
     try {
       const res = await fetch("/api/sales", {
@@ -113,17 +134,25 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
           branchId,
           customerId: customerId || undefined,
           notes: notes || undefined,
-          discount: discountAmount,
-          tax: taxAmount,
+          discount: Number(discountAmount.toFixed(2)),
+          tax: Number(taxAmount.toFixed(2)),
+          paymentMethod,
+          amountTendered: Number(tendered.toFixed(2)),
           items: cart.map((l) => ({ productListingId: l.listingId, quantity: l.quantity })),
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(payload.error ?? "Sale could not be completed.");
-      const customerName = customers.find((c) => c.id === customerId)?.name ?? "Walk-in";
+      const customerName = customers.find((c) => c.id === customerId)?.name ?? "Walk-in customer";
       const branchName = branches.find((b) => b.id === branchId)?.name ?? "Branch";
-      setReceipt({ reference: payload.data.reference, subtotal, discount: discountAmount, tax: taxAmount, total, items: cart.map((l) => ({ name: l.name, quantity: l.quantity, unitPrice: l.price, lineTotal: l.price * l.quantity })), customer: customerName, branch: branchName, soldAt: payload.data.soldAt ?? new Date().toISOString() });
-      setCart([]); setDiscount("0"); setTaxRate("0"); setNotes(""); setCustomerId("");
+      setReceipt({
+        reference: payload.data.reference,
+        subtotal, discount: discountAmount, tax: taxAmount, total,
+        paymentMethod, amountTendered: tendered, change,
+        items: cart.map((l) => ({ name: l.name, quantity: l.quantity, unitPrice: l.price, lineTotal: l.price * l.quantity })),
+        customer: customerName, branch: branchName, soldAt: payload.data.soldAt ?? new Date().toISOString(),
+      });
+      clearCart(); setCustomerId("");
       toast.success(`Sale ${payload.data.reference} completed.`);
       router.refresh();
     } catch (e) {
@@ -133,96 +162,196 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
 
   function printReceipt() {
     if (!receipt) return;
-    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt ${receipt.reference}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{margin:0 0 4px;font-size:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:8px 4px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}.right{text-align:right}.totals{margin-top:16px;max-width:280px;margin-left:auto}</style></head><body><h1>${business.name}</h1><div>${business.address || ""}</div><div>${business.phone || ""}</div><hr/><div><strong>Receipt:</strong> ${receipt.reference}</div><div><strong>Date:</strong> ${new Date(receipt.soldAt).toLocaleString()}</div><div><strong>Branch:</strong> ${receipt.branch}</div><div><strong>Customer:</strong> ${receipt.customer}</div><table><thead><tr><th>Item</th><th class="right">Qty</th><th class="right">Price</th><th class="right">Total</th></tr></thead><tbody>${receipt.items.map((i) => `<tr><td>${i.name}</td><td class="right">${i.quantity}</td><td class="right">${money(i.unitPrice)}</td><td class="right">${money(i.lineTotal)}</td></tr>`).join("")}</tbody></table><div class="totals"><div>Subtotal: <span style="float:right">${money(receipt.subtotal)}</span></div><div>Discount: <span style="float:right">-${money(receipt.discount)}</span></div><div>Tax: <span style="float:right">${money(receipt.tax)}</span></div><div style="font-weight:700;margin-top:8px">Grand Total: <span style="float:right">${money(receipt.total)}</span></div></div><script>window.print()</script></body></html>`;
-    const win = window.open("", "_blank", "width=720,height=900");
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt ${receipt.reference}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827;max-width:720px;margin:0 auto}h1{margin:0 0 4px;font-size:22px}.muted{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:10px 6px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}th{color:#475569;font-weight:600}.right{text-align:right}.totals{margin-top:18px;max-width:320px;margin-left:auto;font-size:14px}.row{display:flex;justify-content:space-between;padding:4px 0}.total{font-weight:700;font-size:16px;border-top:1px solid #e5e7eb;margin-top:8px;padding-top:10px}</style></head><body><h1>${escapeHtml(business.name)}</h1><div class="muted">${escapeHtml(business.address || "")}</div><div class="muted">${escapeHtml(business.phone || "")}</div><hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/><div><strong>Receipt:</strong> ${escapeHtml(receipt.reference)}</div><div><strong>Date:</strong> ${new Date(receipt.soldAt).toLocaleString()}</div><div><strong>Branch:</strong> ${escapeHtml(receipt.branch)}</div><div><strong>Customer:</strong> ${escapeHtml(receipt.customer)}</div><div><strong>Payment:</strong> ${receipt.paymentMethod.toUpperCase()}</div><table><thead><tr><th>Medicine</th><th class="right">Qty</th><th class="right">Price</th><th class="right">Total</th></tr></thead><tbody>${receipt.items.map((i) => `<tr><td>${escapeHtml(i.name)}</td><td class="right">${i.quantity}</td><td class="right">${money(i.unitPrice)}</td><td class="right">${money(i.lineTotal)}</td></tr>`).join("")}</tbody></table><div class="totals"><div class="row"><span>Subtotal</span><span>${money(receipt.subtotal)}</span></div><div class="row"><span>Discount</span><span>-${money(receipt.discount)}</span></div><div class="row"><span>Tax</span><span>${money(receipt.tax)}</span></div><div class="row total"><span>Grand Total</span><span>${money(receipt.total)}</span></div>${receipt.paymentMethod === "cash" ? `<div class="row"><span>Cash received</span><span>${money(receipt.amountTendered)}</span></div><div class="row"><span>Change</span><span>${money(receipt.change)}</span></div>` : ""}</div><script>window.onload=()=>window.print()</script></body></html>`;
+    const win = window.open("", "_blank", "width=760,height=900");
     if (!win) { toast.error("Allow pop-ups to print receipts."); return; }
     win.document.write(html); win.document.close();
   }
 
+  const payBtn = (method: PaymentMethod, label: string, Icon: React.ElementType) => (
+    <button type="button" onClick={() => setPaymentMethod(method)} className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${paymentMethod === method ? "border-[#16a34a] bg-[#f1fce0] text-[#14532d]" : "border-[#e5e7eb] bg-white text-slate-600 hover:bg-[#f8fafc]"}`}>
+      <Icon className="h-4 w-4" /> {label}
+    </button>
+  );
+
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_420px]">
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_420px]">
       <section className="space-y-4">
         <div className="surface-card p-4 sm:p-5">
-          <div className="grid gap-3 lg:grid-cols-[180px_1fr_auto]">
-            <label className="field-label !mt-0">Branch<select className="input-control" value={branchId} onChange={(e) => { setBranchId(e.target.value); setCart([]); }}><option value="" disabled>Choose branch</option>{branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
-            <label className="field-label !mt-0">Search medicine<div className="relative"><Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" /><input ref={barcodeRef} className="input-control !pl-9" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onBarcodeSearch())} placeholder="Name, SKU, barcode, brand, category..." /></div></label>
-            <div className="flex items-end gap-2"><button type="button" className="button-secondary inline-flex h-[46px] items-center gap-2" onClick={onBarcodeSearch}><ScanBarcode size={16} /> Find barcode</button><button type="button" className="button-secondary inline-flex h-[46px] items-center gap-2" onClick={() => barcodeRef.current?.focus()} title="Focus barcode/search input"><Barcode size={16} /> Scan</button></div>
+          <div className="grid gap-3 lg:grid-cols-[180px_1fr_auto_auto]">
+            <label className="field-label !mt-0">Branch
+              <select className="input-control" value={branchId} onChange={(e) => { setBranchId(e.target.value); setCart([]); }}>
+                <option value="" disabled>Choose branch</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </label>
+            <label className="field-label !mt-0">Search medicine
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input ref={barcodeRef} className="input-control !pl-9" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onBarcodeSearch())} placeholder="Search by name, SKU, barcode, brand..." />
+              </div>
+            </label>
+            <div className="flex items-end"><button type="button" className="button-secondary h-[46px] w-full gap-2" onClick={onBarcodeSearch}><ScanBarcode className="h-4 w-4" /> Find</button></div>
+            <div className="flex items-end"><button type="button" className="button-secondary h-[46px] w-full gap-2 border-[#b7e532] bg-[#f7fde8] text-[#3f6212] hover:bg-[#ecfccb]" onClick={() => barcodeRef.current?.focus()} title="Focus search for barcode scanner input"><Barcode className="h-4 w-4" /> Scan</button></div>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">{["All", ...categories.filter(Boolean)].map((c) => <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${category === c ? "bg-black text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{c}</button>)}</div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {categoryOptions.map((c) => (
+              <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${category === c ? "border-[#16a34a] bg-[#16a34a] text-white" : "border-[#e5e7eb] bg-white text-slate-600 hover:border-[#cbd5e1] hover:bg-[#f8fafc]"}`}>{c}</button>
+            ))}
+          </div>
         </div>
+
+        {heldOrders.length > 0 && (
+          <div className="surface-card p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><PauseCircle className="h-4 w-4 text-[#16a34a]" /> Held orders</div>
+            <div className="flex flex-wrap gap-2">
+              {heldOrders.map((order) => (
+                <button key={order.id} type="button" onClick={() => resumeHeld(order)} className="rounded-xl border border-[#e5e7eb] bg-[#f8fafc] px-3 py-2 text-left text-xs hover:border-[#16a34a] hover:bg-[#f7fde8]">
+                  <div className="font-semibold text-slate-800">{order.label}</div>
+                  <div className="mt-0.5 text-slate-500">{branches.find((b) => b.id === order.branchId)?.name ?? "Branch"}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
           {filtered.map((item) => (
-            <article key={item.id} className="surface-card flex flex-col p-4">
+            <article key={item.id} className="group flex flex-col rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-[#bbf7d0] hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
               <div className="flex items-start gap-3">
-                <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-gray-100 text-black border border-gray-200">
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" className="size-14 rounded-xl object-cover" /> : <PillIcon />}
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#e5e7eb] bg-[#f8fafc] text-[#16a34a]">
+                  {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : <Pill className="h-7 w-7" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold text-black">{item.name}</h3>
-                  <p className="mt-1 text-xs text-gray-600">{item.brand || item.sku} · {item.unit}</p>
-                  <p className="mt-1 text-[11px] text-gray-500">{item.category}{item.barcode ? ` · ${item.barcode}` : ""}</p>
+                  <h3 className="truncate text-sm font-semibold text-slate-900">{item.name}</h3>
+                  <p className="mt-1 text-xs text-slate-500">{item.strength || item.brand || "Medicine"}{item.unit ? ` · ${item.unit}` : ""}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-[#f1fce0] px-2 py-0.5 text-[11px] font-medium text-[#3f6212]">{item.category}</span>
+                    <span className="rounded-full bg-[#f8fafc] px-2 py-0.5 text-[11px] text-slate-500 ring-1 ring-[#e5e7eb]">SKU {item.sku}</span>
+                  </div>
                 </div>
               </div>
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-lg font-semibold text-black">{money(item.price)}</p>
-                  <p className={`mt-1 text-xs font-medium ${item.availableStock <= 0 ? "text-black font-semibold" : item.availableStock <= 10 ? "text-gray-700" : "text-black"}`}>{item.availableStock} in stock</p>
+                  <p className="text-lg font-semibold text-slate-900">{money(item.price)}</p>
+                  <p className={`mt-1 text-xs font-medium ${item.availableStock <= 0 ? "text-red-600" : item.availableStock <= 10 ? "text-amber-700" : "text-[#16a34a]"}`}>{item.availableStock} available</p>
                 </div>
-                <button type="button" className="button-primary !py-2 !px-3 !text-xs" onClick={() => add(item)} disabled={item.availableStock <= 0 || !branchId}>Add</button>
+                <button type="button" className="button-primary !px-4 !py-2 !text-xs" onClick={() => add(item)} disabled={item.availableStock <= 0 || !branchId}>Add to cart</button>
               </div>
             </article>
           ))}
-          {!filtered.length && <div className="surface-card col-span-full p-10 text-center text-sm text-gray-600">No medicines match this search in the selected branch.</div>}
+          {!filtered.length && (
+            <div className="col-span-full rounded-[14px] border border-dashed border-[#e5e7eb] bg-white p-10 text-center">
+              <Pill className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-3 text-sm font-medium text-slate-700">No medicines found</p>
+              <p className="mt-1 text-sm text-slate-500">Try a different search, barcode, or category in the selected branch.</p>
+            </div>
+          )}
         </div>
       </section>
 
-      <aside className="surface-card flex h-fit flex-col xl:sticky xl:top-24">
-        <div className="border-b border-gray-200 p-5">
-          <div className="flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-lg font-semibold text-black"><ShoppingCart size={18} className="text-black" /> Current order</h2><p className="mt-1 text-xs text-gray-600">{cart.length} item{cart.length === 1 ? "" : "s"}</p></div>{held && <button type="button" className="text-xs font-semibold text-black" onClick={resumeHeld}>Resume held</button>}</div>
+      <aside className="flex h-fit flex-col rounded-[14px] border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.03)] xl:sticky xl:top-24">
+        <div className="border-b border-[#e5e7eb] p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900"><ShoppingCart className="h-5 w-5 text-[#16a34a]" /> Current order</h2>
+              <p className="mt-1 text-xs text-slate-500">{cart.length} item{cart.length === 1 ? "" : "s"} · {branches.find((b) => b.id === branchId)?.name ?? "Select branch"}</p>
+            </div>
+          </div>
           <div className="mt-4 flex gap-2">
-            <label className="field-label !mt-0 flex-1">Customer<select className="input-control" value={customerId} onChange={(e) => setCustomerId(e.target.value)}><option value="">Walk-in customer</option>{customers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ""}</option>)}</select></label>
-            {canCreateCustomer && <button type="button" className="button-secondary mt-6 inline-flex h-[46px] items-center px-3" title="Add customer" onClick={createWalkInCustomer}><UserPlus size={16} /></button>}
+            <label className="field-label !mt-0 flex-1">Customer
+              <select className="input-control" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+                <option value="">Walk-in customer</option>
+                {customers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ""}</option>)}
+              </select>
+            </label>
+            {canCreateCustomer && <button type="button" className="button-secondary mt-6 h-[46px] px-3" title="Add customer" onClick={createWalkInCustomer}><UserPlus className="h-4 w-4" /></button>}
           </div>
         </div>
 
-        <div className="max-h-[320px] space-y-3 overflow-auto p-5">
+        <div className="max-h-[340px] space-y-3 overflow-auto p-5">
           {cart.map((line) => (
-            <div key={line.listingId} className="rounded-xl border border-gray-200 p-3">
-              <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-medium text-black">{line.name}</p><p className="text-xs text-gray-600">{money(line.price)} / {line.unit} · max {line.max}</p></div><button type="button" className="text-gray-500 hover:text-black font-semibold" onClick={() => setCart((p) => p.filter((x) => x.listingId !== line.listingId))} aria-label="Remove"><X size={16} /></button></div>
+            <div key={line.listingId} className="rounded-xl border border-[#e5e7eb] bg-[#f8fafc] p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">{line.name}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{line.strength || line.sku} · {money(line.price)} / {line.unit}</p>
+                </div>
+                <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-red-600" onClick={() => setCart((p) => p.filter((x) => x.listingId !== line.listingId))} aria-label="Remove item"><X className="h-4 w-4" /></button>
+              </div>
               <div className="mt-3 flex items-center justify-between gap-2">
-                <div className="inline-flex items-center rounded-lg border border-gray-200"><button type="button" className="p-2 text-gray-600" onClick={() => qty(line.listingId, line.quantity - 1)}><Minus size={14} /></button><input className="w-12 border-x border-gray-200 py-1.5 text-center text-sm" value={line.quantity} onChange={(e) => qty(line.listingId, Number(e.target.value))} inputMode="numeric" /><button type="button" className="p-2 text-gray-600" onClick={() => qty(line.listingId, line.quantity + 1)}><Plus size={14} /></button></div>
-                <p className="text-sm font-semibold text-black">{money(line.price * line.quantity)}</p>
+                <div className="inline-flex items-center rounded-xl border border-[#e5e7eb] bg-white">
+                  <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity - 1)} aria-label="Decrease"><Minus className="h-4 w-4" /></button>
+                  <input className="w-12 border-x border-[#e5e7eb] py-1.5 text-center text-sm font-medium text-slate-900 outline-none" value={line.quantity} onChange={(e) => qty(line.listingId, Number(e.target.value))} inputMode="numeric" />
+                  <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity + 1)} aria-label="Increase"><Plus className="h-4 w-4" /></button>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-900">{money(line.price * line.quantity)}</p>
+                  <p className="text-[11px] text-slate-500">max {line.max}</p>
+                </div>
               </div>
             </div>
           ))}
-          {!cart.length && <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-600">Select medicines from the left to build an order.</div>}
+          {!cart.length && (
+            <div className="rounded-xl border border-dashed border-[#e5e7eb] bg-[#f8fafc] p-8 text-center">
+              <ShoppingCart className="mx-auto h-7 w-7 text-slate-300" />
+              <p className="mt-3 text-sm font-medium text-slate-700">Cart is empty</p>
+              <p className="mt-1 text-xs text-slate-500">Select medicines from the catalog to build an order.</p>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4 border-t border-gray-200 p-5">
+        <div className="space-y-4 border-t border-[#e5e7eb] p-5">
           <div className="grid grid-cols-2 gap-3">
             <label className="field-label !mt-0">Discount ({currency})<input className="input-control" type="number" min="0" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} /></label>
             <label className="field-label !mt-0">Tax %<input className="input-control" type="number" min="0" step="0.01" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} /></label>
           </div>
-          <label className="field-label !mt-0">Notes<input className="input-control" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} /></label>
-          <div className="space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
-            <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{money(subtotal)}</span></div>
-            <div className="flex justify-between text-gray-600"><span>Discount</span><span>-{money(discountAmount)}</span></div>
-            <div className="flex justify-between text-gray-600"><span>Tax</span><span>{money(taxAmount)}</span></div>
-            <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-semibold text-black"><span>Grand total</span><span>{money(total)}</span></div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-slate-700">Payment method</p>
+            <div className="grid grid-cols-3 gap-2">
+              {payBtn("cash", "Cash", Banknote)}
+              {payBtn("card", "Card", CreditCard)}
+              {payBtn("other", "Other", Wallet)}
+            </div>
           </div>
+
+          {paymentMethod === "cash" && (
+            <label className="field-label !mt-0">Cash received ({currency})
+              <input className="input-control" type="number" min="0" step="0.01" value={amountTendered} onChange={(e) => setAmountTendered(e.target.value)} placeholder={total.toFixed(2)} />
+            </label>
+          )}
+
+          <label className="field-label !mt-0">Notes<input className="input-control" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Optional order note" /></label>
+
+          <div className="space-y-2 rounded-xl border border-[#e5e7eb] bg-[#f8fafc] p-4 text-sm">
+            <div className="flex justify-between text-slate-600"><span>Subtotal</span><span>{money(subtotal)}</span></div>
+            <div className="flex justify-between text-slate-600"><span>Discount</span><span>-{money(discountAmount)}</span></div>
+            <div className="flex justify-between text-slate-600"><span>Tax</span><span>{money(taxAmount)}</span></div>
+            <div className="flex justify-between border-t border-[#e5e7eb] pt-2 text-base font-semibold text-slate-900"><span>Grand total</span><span>{money(total)}</span></div>
+            {paymentMethod === "cash" && <div className="flex justify-between text-[#16a34a] font-medium"><span>Change</span><span>{money(change)}</span></div>}
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" className="button-secondary" onClick={hold} disabled={!cart.length || busy}>Hold order</button>
-            <button type="button" className="button-secondary" onClick={() => { setCart([]); setDiscount("0"); setTaxRate("0"); setNotes(""); }} disabled={busy}><span className="inline-flex items-center gap-1"><Trash2 size={14} /> Clear cart</span></button>
+            <button type="button" className="button-secondary gap-2" onClick={hold} disabled={!cart.length || busy}><PauseCircle className="h-4 w-4" /> Hold order</button>
+            <button type="button" className="button-secondary gap-2" onClick={clearCart} disabled={busy || !cart.length}><Trash2 className="h-4 w-4" /> Clear cart</button>
           </div>
-          <button type="button" className="button-primary w-full" onClick={completeSale} disabled={busy || !cart.length || !branchId}>{busy ? <LoaderCircle size={16} className="animate-spin" /> : <ShoppingCart size={16} />} Complete sale</button>
-          {receipt && <button type="button" className="button-secondary w-full" onClick={printReceipt}><span className="inline-flex items-center gap-2"><Printer size={16} /> Print receipt ({receipt.reference})</span></button>}
+          <button type="button" className="button-primary w-full !py-3 text-base" onClick={completeSale} disabled={busy || !cart.length || !branchId}>
+            {busy ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />} Complete payment
+          </button>
+          {receipt && (
+            <div className="rounded-xl border border-[#bbf7d0] bg-[#f7fde8] p-3">
+              <p className="text-sm font-semibold text-[#14532d]">Sale completed · {receipt.reference}</p>
+              <p className="mt-1 text-xs text-slate-600">{receipt.paymentMethod.toUpperCase()} · {money(receipt.total)}{receipt.paymentMethod === "cash" ? ` · Change ${money(receipt.change)}` : ""}</p>
+              <button type="button" className="button-secondary mt-3 w-full gap-2" onClick={printReceipt}><Printer className="h-4 w-4" /> Print receipt</button>
+            </div>
+          )}
         </div>
       </aside>
     </div>
   );
 }
 
-function PillIcon() {
-  return <svg viewBox="0 0 24 24" className="size-7 fill-none stroke-current" strokeWidth="1.8"><rect x="3" y="8" width="18" height="8" rx="4" /><path d="M12 8v8" /><path d="M7 12h2.5M14.5 12H17" opacity=".55" /></svg>;
+function escapeHtml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

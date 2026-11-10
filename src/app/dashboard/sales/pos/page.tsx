@@ -8,7 +8,7 @@ export default async function PosPage() {
   const context = await getTenantContext();
   if (!context) redirect("/login");
   if (!context.businessId || !context.permissions?.has("sales.create")) {
-    return <p className="surface-card p-8">Point of Sale access unavailable for this role.</p>;
+    return <div className="surface-card p-8 text-slate-700">Point of Sale access unavailable for this role.</div>;
   }
   const businessId = context.businessId;
   const now = new Date();
@@ -22,7 +22,7 @@ export default async function PosPage() {
         branch: { select: { id: true, name: true } },
         batches: {
           where: { archivedAt: null, quantityRemaining: { gt: 0 }, OR: [{ expiryDate: null }, { expiryDate: { gt: now } }] },
-          select: { quantityRemaining: true, expiryDate: true },
+          select: { quantityRemaining: true },
         },
       },
       orderBy: { product: { name: "asc" } },
@@ -41,8 +41,8 @@ export default async function PosPage() {
     brand: row.product.brand ?? "",
     category: row.product.categoryRef?.name ?? row.product.category ?? "Uncategorized",
     unit: row.product.unit,
+    strength: row.product.description ?? "",
     imageUrl: row.product.imageUrl ?? "",
-    description: row.product.description ?? "",
     branchId: row.branch.id,
     branchName: row.branch.name,
     price: Number(row.price),
@@ -51,17 +51,25 @@ export default async function PosPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-xs font-bold tracking-[.15em] text-black">SALES</p>
-        <h1 className="mt-2 flex items-center gap-3 text-3xl font-semibold tracking-tight text-black"><CreditCard className="text-black" />Point of Sale</h1>
-        <p className="mt-2 text-sm text-gray-600">Search medicines, build an order, and complete sales with automatic inventory updates.</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#16a34a]">Sales</p>
+          <h1 className="mt-2 flex items-center gap-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#f1fce0] text-[#16a34a]"><CreditCard className="h-5 w-5" /></span>
+            Point of Sale
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">Search medicines, build the cart, validate stock, and complete payment with automatic inventory updates.</p>
+        </div>
+        <div className="rounded-xl border border-[#e5e7eb] bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
+          <span className="font-medium text-slate-900">{branches.length}</span> active branch{branches.length === 1 ? "" : "es"} · <span className="font-medium text-slate-900">{catalog.length}</span> listed medicines
+        </div>
       </div>
       <PosClient
         branches={branches}
         customers={customers}
         catalog={catalog}
         categories={categories.map((c) => c.name)}
-        currency={business?.currency ?? "USD"}
+        currency={business?.currency ?? context.membership.business.currency ?? "USD"}
         business={{ name: business?.name ?? context.membership.business.name, address: business?.address ?? "", phone: business?.phone ?? "" }}
         canCreateCustomer={context.permissions.has("customers.manage")}
       />
