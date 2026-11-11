@@ -119,7 +119,7 @@ export function VerificationList({ businesses, filters, pagination }: { business
   }
 
   return (
-    <section className="surface-card overflow-hidden">
+    <section className="surface-card-glass-strong overflow-hidden">
       <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-5 lg:flex-row lg:items-end lg:justify-between">
         <div><h2 className="font-semibold text-slate-900">Business management</h2><p className="mt-1 text-xs text-slate-500">Review applications and manage business account access.</p></div>
         <form onSubmit={submitFilters} className="flex flex-col gap-2 sm:flex-row">

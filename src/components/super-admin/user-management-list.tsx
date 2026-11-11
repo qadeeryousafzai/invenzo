@@ -68,7 +68,7 @@ export function UserManagementList({ users, currentUserId }: { users: Account[];
   }
 
   return (
-    <section className="surface-card overflow-hidden">
+    <section className="surface-card-glass-strong overflow-hidden">
       <div className="border-b border-slate-100 px-5 py-4">
         <h2 className="font-semibold text-slate-900">Platform accounts</h2>
         <p className="mt-1 text-xs leading-5 text-slate-500">Suspend sign-in, restore access, archive accounts reversibly, and manage superadmin privileges. The last active superadmin and your own account are protected.</p>

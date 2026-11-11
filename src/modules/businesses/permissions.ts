@@ -21,13 +21,31 @@ export const PERMISSIONS = {
   "finance.view": "View finances",
   "expenses.manage": "Manage expenses",
   "reports.view": "View reports",
+  "patients.view": "View patients",
+  "patients.manage": "Manage patients",
+  "doctors.view": "View doctors",
+  "doctors.manage": "Manage doctors",
+  "departments.view": "View departments",
+  "departments.manage": "Manage departments",
+  "services.view": "View services",
+  "services.manage": "Manage services",
+  "appointments.view": "View appointments",
+  "appointments.create": "Create appointments",
+  "prescriptions.view": "View prescriptions",
+  "prescriptions.create": "Create prescriptions",
+  "prescriptions.dispense": "Dispense prescriptions",
+  "admissions.view": "View admissions",
+  "admissions.manage": "Manage admissions",
+  "beds.view": "View beds",
+  "beds.manage": "Manage beds",
+  "discharges.view": "View discharges",
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSIONS;
 
 export const OWNER_PERMISSION_KEYS = Object.keys(PERMISSIONS) as PermissionKey[];
 export const ADMIN_PERMISSION_KEYS = OWNER_PERMISSION_KEYS.filter((key) => key !== "roles.manage");
-export const MANAGER_PERMISSION_KEYS: PermissionKey[] = ["business.view", "branches.view", "employees.view", "products.view", "categories.manage", "inventory.view", "inventory.adjust", "customers.manage", "suppliers.manage", "sales.create", "sales.view", "purchases.manage", "expenses.manage", "finance.view", "reports.view"];
+export const MANAGER_PERMISSION_KEYS: PermissionKey[] = ["business.view", "branches.view", "employees.view", "products.view", "categories.manage", "inventory.view", "inventory.adjust", "customers.manage", "suppliers.manage", "sales.create", "sales.view", "purchases.manage", "expenses.manage", "finance.view", "reports.view", "patients.view", "appointments.view", "prescriptions.view", "doctors.view", "departments.view", "services.view", "admissions.view", "beds.view"];
 
 export const DEFAULT_ROLES = [
   { key: "OWNER", name: "Business Owner", permissions: OWNER_PERMISSION_KEYS },

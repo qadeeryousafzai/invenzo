@@ -9,6 +9,11 @@ import {
   ChartNoAxesCombined, ReceiptText, Bell, ChevronDown, ChevronRight, Menu, X, Search, LogOut, Settings,
   PanelLeftClose, PanelLeftOpen, ClipboardList, RotateCcw, FileText, CreditCard, Pill, AlertTriangle,
   BarChart3, Wallet, ClipboardCheck, History, BadgeDollarSign, ArrowRightLeft, ShieldCheck, UserCircle2,
+  Stethoscope, Calendar, GraduationCap, Briefcase, ClipboardPen, Users as UsersIcon, DollarSign, File,
+  GraduationCap as GraduationIcon, Layers, Wand2, Bot, Rocket, Globe, Lock, Key, ShieldAlert, Mail,
+  Phone, MapPin, Clock, Database, PieChart, BarChart2, LineChart, TrendingUp, TrendingDown, Plus,
+  Mail as MailIcon, Inbox, Trophy, Crown, Award,   Heart, Microscope, Building as BuildingIcon,
+  Bed as BedIcon, Barcode, UserPlus, Package,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { WorkspaceControls } from "@/components/dashboard/workspace-controls";
@@ -24,41 +29,53 @@ type Workspace = { id: string; name: string; role: string };
 type NavItem = { href?: string; label: string; icon: React.ElementType; permission?: string; children?: NavItem[] };
 
 const SIDEBAR_NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "business.view" },
-  { label: "Inventory", icon: Boxes, permission: "inventory.view", children: [
-    { href: "/dashboard/products", label: "All Medicines", icon: Pill, permission: "products.view" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { label: "Inventory", icon: Boxes, children: [
+    { href: "/dashboard/products", label: "Medicines", icon: Pill, permission: "products.view" },
     { href: "/dashboard/categories", label: "Categories", icon: Tags, permission: "categories.manage" },
-    { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, permission: "suppliers.manage" },
-    { href: "/dashboard/inventory/adjustments", label: "Stock Adjustments", icon: RotateCcw, permission: "inventory.adjust" },
+    { href: "/dashboard/brands", label: "Brands", icon: File, permission: "categories.manage" },
+    { href: "/dashboard/units", label: "Units", icon: Layers, permission: "categories.manage" },
+    { href: "/dashboard/inventory/batches", label: "Batches", icon: Package, permission: "inventory.view" },
+    { href: "/dashboard/inventory", label: "Stock Levels", icon: Database, permission: "inventory.view" },
     { href: "/dashboard/inventory/expiry", label: "Expiry Management", icon: AlertTriangle, permission: "inventory.view" },
+    { href: "/dashboard/inventory/adjustments", label: "Stock Adjustments", icon: RotateCcw, permission: "inventory.adjust" },
+    { href: "/dashboard/inventory/transfers", label: "Stock Transfers", icon: ArrowRightLeft, permission: "inventory.adjust" },
+    { href: "/dashboard/inventory/barcodes", label: "Barcode Management", icon: Barcode, permission: "inventory.view" },
   ]},
-  { label: "Sales", icon: ShoppingCart, permission: "sales.view", children: [
+  { label: "Sales", icon: ShoppingCart, children: [
     { href: "/dashboard/sales/pos", label: "Point of Sale", icon: CreditCard, permission: "sales.create" },
     { href: "/dashboard/sales", label: "All Sales", icon: ClipboardList, permission: "sales.view" },
     { href: "/dashboard/sales/returns", label: "Sales Returns", icon: RotateCcw, permission: "sales.create" },
     { href: "/dashboard/sales/invoices", label: "Invoices", icon: FileText, permission: "sales.view" },
-    { href: "/dashboard/sales/quotations", label: "Quotations", icon: ClipboardCheck, permission: "sales.create" },
+    { href: "/dashboard/sales/quotations", label: "Quotations", icon: File, permission: "sales.create" },
   ]},
-  { label: "Purchases", icon: ShoppingBasket, permission: "purchases.manage", children: [
+  { label: "Purchases", icon: ShoppingBasket, children: [
     { href: "/dashboard/purchases", label: "Purchase Orders", icon: ClipboardList, permission: "purchases.manage" },
-    { href: "/dashboard/purchases", label: "Purchase History", icon: History, permission: "purchases.manage" },
+    { href: "/dashboard/purchases", label: "All Purchases", icon: ClipboardList, permission: "purchases.manage" },
     { href: "/dashboard/purchases/returns", label: "Purchase Returns", icon: RotateCcw, permission: "purchases.manage" },
+    { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, permission: "suppliers.manage" },
+    { href: "/dashboard/purchases/suppliers", label: "Goods Received", icon: Package, permission: "purchases.manage" },
   ]},
-  { href: "/dashboard/customers", label: "Customers", icon: UserRound, permission: "customers.manage" },
-  { href: "/dashboard/prescriptions", label: "Prescriptions", icon: ClipboardCheck, permission: "sales.view" },
-  { label: "Finance", icon: Wallet, permission: "finance.view", children: [
-    { href: "/dashboard/finance/income", label: "Income", icon: BadgeDollarSign, permission: "finance.view" },
-    { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText, permission: "expenses.manage" },
-    { href: "/dashboard/finance/transactions", label: "Transactions", icon: ArrowRightLeft, permission: "finance.view" },
+  { label: "Prescriptions", icon: ClipboardCheck, children: [
+    { href: "/dashboard/prescriptions", label: "All Prescriptions", icon: ClipboardList, permission: "prescriptions.view" },
+    { href: "/dashboard/prescriptions/create", label: "Prescription Details", icon: ClipboardPen, permission: "prescriptions.create" },
+    { href: "/dashboard/prescriptions", label: "Prescription History", icon: History, permission: "prescriptions.view" },
   ]},
-  { label: "Reports", icon: ChartNoAxesCombined, permission: "reports.view", children: [
-    { href: "/dashboard/reports/sales", label: "Sales Reports", icon: BarChart3, permission: "reports.view" },
+  { label: "Reports", icon: ChartNoAxesCombined, children: [
+    { href: "/dashboard/reports/sales", label: "Sales Reports", icon: BarChart2, permission: "reports.view" },
+    { href: "/dashboard/reports/purchases", label: "Purchase Reports", icon: ShoppingBasket, permission: "reports.view" },
     { href: "/dashboard/reports/inventory", label: "Inventory Reports", icon: Boxes, permission: "reports.view" },
+    { href: "/dashboard/reports/expiry", label: "Expiry Reports", icon: AlertTriangle, permission: "reports.view" },
     { href: "/dashboard/reports/profit-loss", label: "Profit & Loss", icon: Wallet, permission: "reports.view" },
+    { href: "/dashboard/reports/tax", label: "Tax Reports", icon: FileText, permission: "reports.view" },
+    { href: "/dashboard/reports/customers", label: "Customer Reports", icon: UserRound, permission: "reports.view" },
   ]},
-  { href: "/dashboard/employees", label: "Staff & Permissions", icon: ShieldCheck, permission: "employees.view" },
-  { href: "/dashboard/notifications", label: "Notifications", icon: Bell, permission: "business.view" },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings, permission: "business.view" },
+  { label: "Notifications", icon: Bell, children: [
+    { href: "/dashboard/notifications", label: "All Notifications", icon: Inbox, permission: "business.view" },
+  ]},
+  { label: "Settings", icon: Settings, children: [
+    { href: "/dashboard/settings", label: "Settings", icon: Settings, permission: "business.view" },
+  ]},
 ];
 
 function hasPermission(permissions: string[], required?: string) {
@@ -104,26 +121,26 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
   }, [currentPath]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800">
+    <div className="min-h-screen bg-[#e5efe5] text-[#17231f]">
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#e5e7eb] bg-white shadow-[2px_0_12px_rgba(15,23,42,0.03)] transition-all duration-300",
+        "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#e8eee8] bg-[#ffffff] shadow-[2px_0_12px_rgba(0,61,50,0.03)] transition-all duration-300",
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         sidebarCollapsed ? "w-[86px]" : "w-[288px]"
       )}>
         {/* Logo / Pharmacy */}
-        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#e5e7eb] px-4">
+        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#e8eee8] px-4">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#b7e532] text-[#14532d] ring-1 ring-[#d9f99d]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#9be66b] text-[#003d32] ring-1 ring-[#d9f99d]">
               <Pill className="h-5 w-5" />
             </span>
             {!sidebarCollapsed && (
               <span className="min-w-0">
-                <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-slate-900">{businessName}</span>
-                <span className="block truncate text-[11px] font-medium text-slate-500">{businessType.replaceAll("_", " ") || "Pharmacy"}</span>
+                <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-[#17231f]">{businessName}</span>
+                <span className="block truncate text-[11px] font-medium text-[#77847d]">{businessType.replaceAll("_", " ") || "Pharmacy"}</span>
               </span>
             )}
           </Link>
-          <button className="rounded-lg p-1.5 text-slate-500 hover:bg-[#f8fafc] lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="h-5 w-5" /></button>
+          <button className="rounded-lg p-1.5 text-[#77847d] hover:bg-[#f1f7ee] lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="h-5 w-5" /></button>
         </div>
 
         {/* Navigation */}
@@ -149,12 +166,12 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                       aria-expanded={open}
                       title={sidebarCollapsed ? item.label : undefined}
                     >
-                      <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-[#f1fce0] text-[#16a34a]" : "text-slate-500")}>
+                      <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-[#f1fce0] text-[#003d32]" : "text-[#77847d]")}>
                         <Icon className="h-[18px] w-[18px]" />
                       </span>
                       {!sidebarCollapsed && <>
                         <span className="flex-1 truncate">{item.label}</span>
-                        <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", open && "rotate-180")} />
+                        <ChevronDown className={cn("h-4 w-4 text-[#77847d] transition-transform duration-200", open && "rotate-180")} />
                       </>}
                     </button>
                     {!sidebarCollapsed && open && (
@@ -170,11 +187,11 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                                 className={cn(
                                   "group flex items-center gap-2.5 rounded-xl border-l-2 px-3 py-2 text-[13px] font-medium transition-colors",
                                   childActive
-                                    ? "border-[#16a34a] bg-[#f1fce0] text-[#14532d]"
-                                    : "border-transparent text-slate-600 hover:border-[#e5e7eb] hover:bg-[#f8fafc] hover:text-slate-900"
+                                    ? "border-[#003d32] bg-[#f1fce0] text-[#003d32]"
+                                    : "border-transparent text-[#77847d] hover:border-[#e8eee8] hover:bg-[#f1f7ee] hover:text-[#17231f]"
                                 )}
                               >
-                                <ChildIcon className={cn("h-4 w-4 shrink-0", childActive ? "text-[#16a34a]" : "text-slate-400 group-hover:text-slate-600")} />
+                                <ChildIcon className={cn("h-4 w-4 shrink-0", childActive ? "text-[#003d32]" : "text-[#77847d] group-hover:text-[#17231f]")} />
                                 <span className="truncate">{child.label}</span>
                               </Link>
                             </li>
@@ -196,17 +213,17 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                       active
-                        ? "bg-[#f1fce0] text-[#14532d] shadow-[inset_3px_0_0_#16a34a]"
-                        : "text-slate-600 hover:bg-[#f8fafc] hover:text-slate-900",
+                        ? "bg-[#f1fce0] text-[#003d32] shadow-[inset_3px_0_0_#003d32]"
+                        : "text-[#77847d] hover:bg-[#f1f7ee] hover:text-[#17231f]",
                       sidebarCollapsed && "justify-center px-2"
                     )}
                   >
-                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-white/70 text-[#16a34a]" : "text-slate-500 group-hover:text-slate-700")}>
+                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-white/70 text-[#003d32]" : "text-[#77847d] group-hover:text-[#17231f]")}>
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
                     {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
                     {!sidebarCollapsed && item.label === "Notifications" && unreadNotifications > 0 && (
-                      <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#16a34a] px-1.5 text-[10px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>
+                      <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003d32] px-1.5 text-[10px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>
                     )}
                   </Link>
                 </li>
@@ -216,21 +233,21 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
         </nav>
 
         {/* Bottom: profile, role, logout + collapse */}
-        <div className="shrink-0 border-t border-[#e5e7eb] bg-white p-3">
+        <div className="shrink-0 border-t border-[#e8eee8] bg-[#ffffff] p-3">
           {!sidebarCollapsed ? (
-            <div className="mb-3 flex items-center gap-3 rounded-xl border border-[#e5e7eb] bg-[#f8fafc] p-3">
+            <div className="mb-3 flex items-center gap-3 rounded-xl border border-[#e8eee8] bg-[#f1f7ee] p-3">
               <Avatar className="h-10 w-10 border border-white shadow-sm">
-                <AvatarFallback className="bg-[#b7e532] text-sm font-bold text-[#14532d]">{userName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="bg-[#9be66b] text-sm font-bold text-[#003d32]">{userName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{userName}</p>
-                <p className="truncate text-xs font-medium text-[#16a34a]">{roleName}</p>
+                <p className="truncate text-sm font-semibold text-[#17231f]">{userName}</p>
+                <p className="truncate text-xs font-medium text-[#003d32]">{roleName}</p>
               </div>
             </div>
           ) : (
             <div className="mb-3 flex justify-center">
-              <Avatar className="h-10 w-10 border border-[#e5e7eb]" title={`${userName} · ${roleName}`}>
-                <AvatarFallback className="bg-[#b7e532] text-xs font-bold text-[#14532d]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback>
+              <Avatar className="h-10 w-10 border border-[#e8eee8]" title={`${userName} · ${roleName}`}>
+                <AvatarFallback className="bg-[#9be66b] text-xs font-bold text-[#003d32]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
           )}
@@ -239,7 +256,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
               type="button"
               onClick={() => setSidebarCollapsed((v) => !v)}
               className={cn(
-                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white text-sm font-medium text-slate-600 transition hover:bg-[#f8fafc] hover:text-slate-900",
+                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:bg-[#f1f7ee] hover:text-[#17231f]",
                 sidebarCollapsed ? "w-10" : "flex-1 px-3"
               )}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -251,7 +268,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
               className={cn(
-                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700",
+                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:border-#eb755e hover:bg-#fff0ec hover:text-[#eb755e]",
                 sidebarCollapsed ? "w-10" : "px-3"
               )}
               aria-label="Logout"
@@ -267,61 +284,61 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
       {sidebarOpen && <div className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-[1px] lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
 
       <div className={cn("min-h-screen transition-all duration-300", sidebarCollapsed ? "lg:pl-[86px]" : "lg:pl-[288px]")}>
-        <header className="sticky top-0 z-30 border-b border-[#e5e7eb] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+        <header className="sticky top-0 z-30 border-b border-[#e8eee8] bg-[#ffffff]/95 backdrop-blur supports-[backdrop-filter]:bg-[#ffffff]/90">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e5e7eb] text-slate-600 hover:bg-[#f8fafc] lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
+            <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e8eee8] text-[#77847d] hover:bg-[#f1f7ee] lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
 
-            <div className="hidden min-w-0 items-center gap-2 text-sm text-slate-500 lg:flex">
-              <Building2 className="h-4 w-4 text-[#16a34a]" />
-              <span className="truncate font-medium text-slate-700">{businessName}</span>
+            <div className="hidden min-w-0 items-center gap-2 text-sm text-[#77847d] lg:flex">
+              <Building2 className="h-4 w-4 text-[#003d32]" />
+              <span className="truncate font-medium text-[#17231f]">{businessName}</span>
               {crumbs.map((crumb, i) => (
                 <Fragment key={crumb.href}>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
-                  <Link href={crumb.href} className={cn("truncate", i === crumbs.length - 1 ? "font-semibold text-slate-900" : "hover:text-slate-700")}>{crumb.label}</Link>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-[#cddbcb]" />
+                  <Link href={crumb.href} className={cn("truncate", i === crumbs.length - 1 ? "font-semibold text-[#17231f]" : "hover:text-[#77847d]")}>{crumb.label}</Link>
                 </Fragment>
               ))}
             </div>
 
             <div className="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
               <div className="relative hidden w-full max-w-md md:block">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e5e7eb] bg-[#f8fafc] pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-[#16a34a]/20" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77847d]" />
+                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e8eee8] bg-[#f1f7ee] pl-9 text-sm text-[#17231f] placeholder:text-[#77847d] focus-visible:bg-white focus-visible:ring-[#9be66b]/20" />
               </div>
 
-              <Link href="/dashboard/notifications" className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e5e7eb] bg-white text-slate-600 transition hover:bg-[#f8fafc] hover:text-slate-900" aria-label="Notifications">
+              <Link href="/dashboard/notifications" className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e8eee8] bg-[#ffffff] text-[#77847d] transition hover:bg-[#f1f7ee] hover:text-[#17231f]" aria-label="Notifications">
                 <Bell className="h-5 w-5" />
-                {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#16a34a] px-1 text-[10px] font-bold text-white ring-2 ring-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
+                {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003d32] px-1 text-[10px] font-bold text-white ring-2 ring-[#ffffff]">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
               </Link>
 
               <PwaInstallButton />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white p-1.5 pr-2.5 transition hover:bg-[#f8fafc]">
-                    <Avatar className="h-7 w-7 border border-[#e5e7eb]"><AvatarFallback className="bg-[#f1fce0] text-[11px] font-bold text-[#14532d]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback></Avatar>
-                    <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">{userName}</span>
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <button className="flex items-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] p-1.5 pr-2.5 transition hover:bg-[#f1f7ee]">
+                    <Avatar className="h-7 w-7 border border-[#e8eee8]"><AvatarFallback className="bg-[#f1fce0] text-[11px] font-bold text-[#003d32]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback></Avatar>
+                    <span className="hidden max-w-[120px] truncate text-sm font-medium text-[#17231f] sm:block">{userName}</span>
+                    <ChevronDown className="h-4 w-4 text-[#77847d]" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 rounded-xl border-[#e5e7eb] bg-white p-1.5 shadow-lg">
+                <DropdownMenuContent align="end" className="w-64 rounded-xl border-[#e8eee8] bg-[#ffffff] p-1.5 shadow-lg">
                   <DropdownMenuLabel className="px-2 py-2">
-                    <p className="text-sm font-semibold text-slate-900">{userName}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{roleName}</p>
-                    <p className="mt-0.5 truncate text-xs text-[#16a34a]">{businessName}</p>
+                    <p className="text-sm font-semibold text-[#17231f]">{userName}</p>
+                    <p className="mt-0.5 text-xs text-[#77847d]">{roleName}</p>
+                    <p className="mt-0.5 truncate text-xs text-[#003d32]">{businessName}</p>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-[#e5e7eb]" />
-                  <DropdownMenuItem asChild><Link href="/dashboard/settings" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-slate-700"><UserCircle2 className="h-4 w-4" /> Profile</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/dashboard/business" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-slate-700"><Building2 className="h-4 w-4" /> Pharmacy settings</Link></DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-[#e5e7eb]" />
-                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer rounded-lg px-2 py-2 text-red-700 focus:bg-red-50 focus:text-red-700"><LogOut className="mr-2 h-4 w-4" /> Logout</DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[#e8eee8]" />
+                  <DropdownMenuItem asChild><Link href="/dashboard/settings/organization" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-[#77847d]"><UserCircle2 className="h-4 w-4" /> Profile</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/dashboard/settings/business" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-[#77847d]"><Building2 className="h-4 w-4" /> Organization</Link></DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[#e8eee8]" />
+                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer rounded-lg px-2 py-2 text-[#eb755e] focus:bg-[#fff0ec] focus:text-[#eb755e]"><LogOut className="mr-2 h-4 w-4" /> Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          <div className="border-t border-[#e5e7eb] px-4 py-2 md:hidden">
+          <div className="border-t border-[#e8eee8] px-4 py-2 md:hidden">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e5e7eb] bg-[#f8fafc] pl-9 text-sm" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77847d]" />
+              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e8eee8] bg-[#f1f7ee] pl-9 text-sm" />
             </div>
           </div>
         </header>

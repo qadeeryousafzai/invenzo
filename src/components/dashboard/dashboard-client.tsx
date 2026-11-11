@@ -45,7 +45,7 @@ const shortDate = (value: Date | string) => new Date(value).toLocaleDateString("
 
 function StatCard({ label, value, sub, icon: Icon, accent = false }: { label: string; value: string; sub: string; icon: React.ElementType; accent?: boolean }) {
   return (
-    <article className="rounded-[14px] border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.03)]">
+    <article className="surface-card-glass-strong rounded-[14px] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500">{label}</p>
@@ -129,7 +129,7 @@ export function DashboardClient({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-        <article className="surface-card p-5">
+        <article className="surface-card-glass p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-slate-900">Daily sales</h2>
@@ -158,7 +158,7 @@ export function DashboardClient({
           </div>
         </article>
 
-        <article className="surface-card p-5">
+        <article className="surface-card-glass p-5">
           <div className="mb-4">
             <h2 className="text-base font-semibold text-slate-900">Sales performance</h2>
             <p className="mt-1 text-xs text-slate-500">Medicine categories in this workspace.</p>
@@ -187,7 +187,7 @@ export function DashboardClient({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <article className="surface-card p-5">
+        <article className="surface-card-glass p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-slate-900">Monthly revenue</h2>
@@ -209,7 +209,7 @@ export function DashboardClient({
           </div>
         </article>
 
-        <article className="surface-card p-5">
+        <article className="surface-card-glass p-5">
           <div className="mb-4 flex items-center justify-between">
             <div><h2 className="text-base font-semibold text-slate-900">Top-selling medicines</h2><p className="mt-1 text-xs text-slate-500">Best performers this month.</p></div>
             <Link href="/dashboard/reports/sales" className="inline-flex items-center gap-1 text-sm font-semibold text-[#16a34a] hover:text-[#15803d]">Report <ArrowUpRight className="h-4 w-4" /></Link>

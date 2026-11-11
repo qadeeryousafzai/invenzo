@@ -45,7 +45,7 @@ export default async function SuperAdminMessagesPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-xs text-slate-600">
-                    {new Date(message.createdAt).toLocaleDateString("en", { dateStyle: "medium", timeStyle: "short" })}
+                    {new Date(message.createdAt).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" })}
                   </td>
                 </tr>
               ))}
