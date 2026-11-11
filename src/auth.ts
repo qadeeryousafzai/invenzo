@@ -8,6 +8,10 @@ import { prisma } from "@/lib/prisma";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 60 * 60 * 8 },
   pages: { signIn: "/login" },
+  // Trust the reverse proxy (Hostinger) so callback origin checks pass when the
+  // app runs behind HTTPS termination. AUTH_TRUST_HOST env does the same, but
+  // setting it explicitly keeps production login reliable.
+  trustHost: true,
   providers: [
     Credentials({
       name: "Email and password",

@@ -2,9 +2,11 @@
 const nextConfig = {
   experimental: {
     serverActions: {
+      // Next.js 16 expects protocol + host (no path). Both www and apex are
+      // accepted so the reverse proxy origin always matches.
       allowedOrigins: [
-        "invenzoapp.com",
-        "www.invenzoapp.com",
+        "https://invenzoapp.com",
+        "https://www.invenzoapp.com",
       ],
     },
   },
