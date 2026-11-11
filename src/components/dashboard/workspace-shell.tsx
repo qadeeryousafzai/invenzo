@@ -8,12 +8,8 @@ import {
   LayoutDashboard, Boxes, Tags, Truck, ShoppingCart, ShoppingBasket, UserRound, Building2,
   ChartNoAxesCombined, ReceiptText, Bell, ChevronDown, ChevronRight, Menu, X, Search, LogOut, Settings,
   PanelLeftClose, PanelLeftOpen, ClipboardList, RotateCcw, FileText, CreditCard, Pill, AlertTriangle,
-  BarChart3, Wallet, ClipboardCheck, History, BadgeDollarSign, ArrowRightLeft, ShieldCheck, UserCircle2,
-  Stethoscope, Calendar, GraduationCap, Briefcase, ClipboardPen, Users as UsersIcon, DollarSign, File,
-  GraduationCap as GraduationIcon, Layers, Wand2, Bot, Rocket, Globe, Lock, Key, ShieldAlert, Mail,
-  Phone, MapPin, Clock, Database, PieChart, BarChart2, LineChart, TrendingUp, TrendingDown, Plus,
-  Mail as MailIcon, Inbox, Trophy, Crown, Award,   Heart, Microscope, Building as BuildingIcon,
-  Bed as BedIcon, Barcode, UserPlus, Package,
+  BarChart2, Wallet, ClipboardCheck, ArrowRightLeft, UserCircle2, Stethoscope, Calendar, Briefcase,
+  ClipboardPen, Users as UsersIcon, File, Layers, Clock, Database, Bed as BedIcon, Barcode, UserPlus, Package,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { WorkspaceControls } from "@/components/dashboard/workspace-controls";
@@ -48,20 +44,35 @@ const SIDEBAR_NAV: NavItem[] = [
     { href: "/dashboard/sales/returns", label: "Sales Returns", icon: RotateCcw, permission: "sales.create" },
     { href: "/dashboard/sales/invoices", label: "Invoices", icon: FileText, permission: "sales.view" },
     { href: "/dashboard/sales/quotations", label: "Quotations", icon: File, permission: "sales.create" },
+    { href: "/dashboard/customers", label: "Customers", icon: UserRound, permission: "customers.manage" },
   ]},
   { label: "Purchases", icon: ShoppingBasket, children: [
     { href: "/dashboard/purchases", label: "Purchase Orders", icon: ClipboardList, permission: "purchases.manage" },
-    { href: "/dashboard/purchases", label: "All Purchases", icon: ClipboardList, permission: "purchases.manage" },
     { href: "/dashboard/purchases/returns", label: "Purchase Returns", icon: RotateCcw, permission: "purchases.manage" },
-    { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, permission: "suppliers.manage" },
     { href: "/dashboard/purchases/suppliers", label: "Goods Received", icon: Package, permission: "purchases.manage" },
+    { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, permission: "suppliers.manage" },
   ]},
-  { label: "Prescriptions", icon: ClipboardCheck, children: [
-    { href: "/dashboard/prescriptions", label: "All Prescriptions", icon: ClipboardList, permission: "prescriptions.view" },
-    { href: "/dashboard/prescriptions/create", label: "Prescription Details", icon: ClipboardPen, permission: "prescriptions.create" },
-    { href: "/dashboard/prescriptions", label: "Prescription History", icon: History, permission: "prescriptions.view" },
+  { label: "Healthcare", icon: Stethoscope, children: [
+    { href: "/dashboard/patients", label: "Patients", icon: UserRound, permission: "patients.view" },
+    { href: "/dashboard/patients/register", label: "Register Patient", icon: UserPlus, permission: "patients.manage" },
+    { href: "/dashboard/appointments", label: "Appointments", icon: Calendar, permission: "appointments.view" },
+    { href: "/dashboard/appointments/book", label: "Book Appointment", icon: Calendar, permission: "appointments.create" },
+    { href: "/dashboard/appointments/calendar", label: "Appointment Calendar", icon: Clock, permission: "appointments.view" },
+    { href: "/dashboard/doctors", label: "Doctors", icon: Stethoscope, permission: "doctors.view" },
+    { href: "/dashboard/departments", label: "Departments", icon: Building2, permission: "departments.view" },
+    { href: "/dashboard/services", label: "Services", icon: Briefcase, permission: "services.view" },
+    { href: "/dashboard/prescriptions", label: "Prescriptions", icon: ClipboardCheck, permission: "prescriptions.view" },
+    { href: "/dashboard/prescriptions/create", label: "Create Prescription", icon: ClipboardPen, permission: "prescriptions.create" },
+    { href: "/dashboard/beds", label: "Beds", icon: BedIcon, permission: "beds.view" },
+    { href: "/dashboard/admissions", label: "Admissions", icon: ClipboardCheck, permission: "admissions.view" },
+  ]},
+  { label: "Finance", icon: Wallet, children: [
+    { href: "/dashboard/finance/income", label: "Income", icon: Wallet, permission: "finance.view" },
+    { href: "/dashboard/finance/transactions", label: "Transactions", icon: ArrowRightLeft, permission: "finance.view" },
+    { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText, permission: "finance.view" },
   ]},
   { label: "Reports", icon: ChartNoAxesCombined, children: [
+    { href: "/dashboard/reports", label: "Overview", icon: ChartNoAxesCombined, permission: "reports.view" },
     { href: "/dashboard/reports/sales", label: "Sales Reports", icon: BarChart2, permission: "reports.view" },
     { href: "/dashboard/reports/purchases", label: "Purchase Reports", icon: ShoppingBasket, permission: "reports.view" },
     { href: "/dashboard/reports/inventory", label: "Inventory Reports", icon: Boxes, permission: "reports.view" },
@@ -70,12 +81,13 @@ const SIDEBAR_NAV: NavItem[] = [
     { href: "/dashboard/reports/tax", label: "Tax Reports", icon: FileText, permission: "reports.view" },
     { href: "/dashboard/reports/customers", label: "Customer Reports", icon: UserRound, permission: "reports.view" },
   ]},
-  { label: "Notifications", icon: Bell, children: [
-    { href: "/dashboard/notifications", label: "All Notifications", icon: Inbox, permission: "business.view" },
+  { label: "Administration", icon: Building2, children: [
+    { href: "/dashboard/branches", label: "Branches", icon: Building2, permission: "branches.view" },
+    { href: "/dashboard/employees", label: "Team & Roles", icon: UsersIcon, permission: "employees.view" },
+    { href: "/dashboard/business", label: "Business Profile", icon: Briefcase, permission: "business.view" },
   ]},
-  { label: "Settings", icon: Settings, children: [
-    { href: "/dashboard/settings", label: "Settings", icon: Settings, permission: "business.view" },
-  ]},
+  { href: "/dashboard/notifications", label: "Notifications", icon: Bell, permission: "business.view" },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings, permission: "business.view" },
 ];
 
 function hasPermission(permissions: string[], required?: string) {

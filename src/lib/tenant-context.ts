@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import type { PermissionKey } from "@/modules/businesses/permissions";
 import { selectAuthorizedMembership } from "@/modules/businesses/tenant";
 import { getWorkspaceAccessStatus } from "@/modules/businesses/subscription";
+import { expandPermissions } from "@/modules/businesses/permission-map";
+import { PERMISSIONS } from "@/modules/businesses/permissions";
 
 export class TenantAuthorizationError extends Error {
   constructor(message = "You are not authorized to perform this action.") {
@@ -29,13 +31,16 @@ export async function getTenantContext() {
     ?? (activeMemberships.length === 0 ? selectAuthorizedMembership(memberships, requestedBusinessId) : undefined);
   const selectableMemberships = activeMemberships.length > 0 ? activeMemberships : memberships;
   if (!membership) return { userId: session.user.id, platformRole: session.user.platformRole, memberships, membership: null };
+  const permissions = membership.role.key === "OWNER"
+    ? new Set(Object.keys(PERMISSIONS))
+    : expandPermissions(membership.role.permissions.map((item) => item.permissionKey));
   return {
     userId: session.user.id,
     platformRole: session.user.platformRole,
     memberships: selectableMemberships,
     membership,
     businessId: membership.businessId,
-    permissions: new Set(membership.role.permissions.map((item) => item.permissionKey)),
+    permissions,
   };
 }
 

@@ -17,7 +17,7 @@ export default async function ProductsPage() {
     prisma.product.findMany({
       where: { businessId: context.businessId, deletedAt: null },
       select: {
-        id: true, name: true, sku: true, category: true, categoryRef: { select: { name: true } }, unit: true,
+        id: true, name: true, sku: true, category: true, categoryRef: { select: { name: true } }, unit: true, description: true,
         listings: {
           where: { businessId: context.businessId },
           select: {
