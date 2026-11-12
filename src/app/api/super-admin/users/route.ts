@@ -12,7 +12,7 @@ const schema = z.object({
   password: z.string().min(8).max(128),
   phone: z.string().trim().max(40).optional(),
   brandName: z.string().trim().max(191).optional(),
-  brandCategory: z.enum(["PHARMACY", "GROCERY", "ELECTRONICS", "CLOTHING", "WHOLESALE", "GENERAL_RETAIL", "OTHER"]).optional(),
+  brandCategory: z.enum(["PHARMACY", "GROCERY", "ELECTRONICS", "CLOTHING", "WHOLESALE", "GENERAL_RETAIL", "OTHER"]).or(z.literal("")).optional(),
   address: z.string().trim().max(1000).optional(),
   role: z.enum(["USER", "SUPER_ADMIN"]).default("USER"),
 }).strict();
@@ -25,7 +25,11 @@ export async function POST(request: Request) {
     await requireSuperAdmin();
     const body = await request.json().catch(() => null);
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Invalid input.", details: parsed.error.flatten().fieldErrors }, { status: 400 });
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      console.warn("[super-admin/create-user] validation failed", { fieldErrors, bodyKeys: body ? Object.keys(body) : null });
+      return NextResponse.json({ error: "Invalid input.", details: fieldErrors }, { status: 400 });
+    }
     const data = parsed.data;
 
     const email = data.email.toLowerCase();

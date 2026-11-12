@@ -18,10 +18,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: { email: {}, password: {} },
       async authorize(raw) {
         const parsed = z.object({ email: z.email(), password: z.string().min(1) }).safeParse(raw);
-        if (!parsed.success) return null;
-        const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
-        if (!user || user.disabledAt || user.deletedAt || !user.emailVerified || !user.passwordHash) return null;
-        if (!(await compare(parsed.data.password, user.passwordHash))) return null;
+        if (!parsed.success) {
+          console.warn("[auth] authorize: invalid credentials shape", { hasEmail: !!raw?.email, hasPassword: !!raw?.password });
+          return null;
+        }
+        const email = parsed.data.email.toLowerCase();
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          console.warn("[auth] authorize: user not found", { email });
+          return null;
+        }
+        if (user.disabledAt) {
+          console.warn("[auth] authorize: user disabled", { userId: user.id, disabledAt: user.disabledAt });
+          return null;
+        }
+        if (user.deletedAt) {
+          console.warn("[auth] authorize: user deleted", { userId: user.id, deletedAt: user.deletedAt });
+          return null;
+        }
+        if (!user.emailVerified) {
+          console.warn("[auth] authorize: email not verified", { userId: user.id, email });
+          return null;
+        }
+        if (!user.passwordHash) {
+          console.warn("[auth] authorize: no password hash", { userId: user.id, email });
+          return null;
+        }
+        const passwordValid = await compare(parsed.data.password, user.passwordHash);
+        if (!passwordValid) {
+          console.warn("[auth] authorize: password mismatch", { userId: user.id, email });
+          return null;
+        }
         if (user.platformRole !== PlatformRole.SUPER_ADMIN) {
           const now = new Date();
           const hasActiveBusiness = await prisma.membership.count({
@@ -38,8 +65,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               },
             },
           });
-          if (!hasActiveBusiness) return null;
+          if (!hasActiveBusiness) {
+            // Diagnostic: check why no active business was found
+            const memberships = await prisma.membership.findMany({
+              where: { userId: user.id },
+              include: { business: { select: { accountStatus: true, subscriptionExpiresAt: true, deletedAt: true } } },
+            });
+            console.warn("[auth] authorize: no active business", {
+              userId: user.id,
+              email,
+              membershipCount: memberships.length,
+              memberships: memberships.map((m) => ({
+                status: m.status,
+                businessStatus: m.business?.accountStatus,
+                subscriptionExpiresAt: m.business?.subscriptionExpiresAt?.toISOString(),
+                businessDeletedAt: m.business?.deletedAt?.toISOString(),
+              })),
+            });
+            return null;
+          }
         }
+        console.info("[auth] authorize: success", { userId: user.id, email, platformRole: user.platformRole });
         return { id: user.id, name: user.name, email: user.email, platformRole: user.platformRole, tokenVersion: user.tokenVersion };
       },
     }),

@@ -62,9 +62,22 @@ export async function requirePageTenant() {
 
 export async function requireSuperAdmin() {
   const session = await auth();
-  if (!session?.user?.id) throw new TenantAuthorizationError("Authentication required.");
+  if (!session?.user?.id) {
+    console.warn("[requireSuperAdmin] no session");
+    throw new TenantAuthorizationError("Authentication required.");
+  }
   const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, platformRole: true, disabledAt: true, deletedAt: true } });
-  if (!currentUser || currentUser.disabledAt || currentUser.deletedAt) throw new TenantAuthorizationError("Authentication required.");
-  if (currentUser.platformRole !== "SUPER_ADMIN") throw new TenantAuthorizationError("Platform administrator access required.");
+  if (!currentUser) {
+    console.warn("[requireSuperAdmin] user not found", { userId: session.user.id });
+    throw new TenantAuthorizationError("Authentication required.");
+  }
+  if (currentUser.disabledAt || currentUser.deletedAt) {
+    console.warn("[requireSuperAdmin] user disabled/deleted", { userId: currentUser.id, disabledAt: currentUser.disabledAt, deletedAt: currentUser.deletedAt });
+    throw new TenantAuthorizationError("Authentication required.");
+  }
+  if (currentUser.platformRole !== "SUPER_ADMIN") {
+    console.warn("[requireSuperAdmin] not super admin", { userId: currentUser.id, platformRole: currentUser.platformRole });
+    throw new TenantAuthorizationError("Platform administrator access required.");
+  }
   return { ...session.user, platformRole: currentUser.platformRole };
 }

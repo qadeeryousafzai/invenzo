@@ -33,10 +33,20 @@ export default function SuperAdminCreateUserPage() {
     setSuccess("");
 
     try {
+      const body = JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        phone: formData.phone || undefined,
+        brandName: formData.brandName || undefined,
+        brandCategory: formData.brandCategory || undefined,
+        address: formData.address || undefined,
+      });
       const res = await fetch("/api/super-admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create user");
