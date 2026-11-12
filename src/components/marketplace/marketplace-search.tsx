@@ -6,7 +6,6 @@ import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Boxes,
   Check,
   ChevronDown,
   LocateFixed,
@@ -20,6 +19,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { LogoMark } from "@/components/logo";
 
 type Result = {
   listingId: string;
@@ -107,7 +107,7 @@ export function MarketplaceSearch() {
       <header className="sticky top-0 z-30 border-b border-[#e7eae4] bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
           <Link href="/" aria-label="Invenzo home" className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-[#175b45] text-white shadow-sm shadow-[#175b45]/20"><Boxes size={19} strokeWidth={1.8} /></span>
+            <LogoMark size={28} />
             <span className="text-[19px] font-bold tracking-[-.055em] text-[#1d2b24]">invenzo<span className="text-[#3c8965]">.</span></span>
           </Link>
 
@@ -295,7 +295,7 @@ export function MarketplaceSearch() {
 
       <footer className="border-t border-[#e5e9e2] bg-white px-5 py-6 sm:px-8 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="flex items-center gap-2 text-sm font-bold tracking-[-.04em] text-[#35463a]"><span className="grid size-7 place-items-center rounded-[9px] bg-[#175b45] text-white"><Boxes size={14} /></span>invenzo<span className="-ml-2 text-[#3c8965]">.</span></Link>
+          <Link href="/" className="flex items-center gap-2 text-sm font-bold tracking-[-.04em] text-[#35463a]"><LogoMark size={20} />invenzo<span className="-ml-2 text-[#3c8965]">.</span></Link>
           <p className="text-[10px] text-[#8b968d]">Product availability is supplied by participating businesses and may change.</p>
           <Link href="/login" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#66746a] transition hover:text-[#175b45]">Business sign in <ArrowUpRight size={13} /></Link>
         </div>

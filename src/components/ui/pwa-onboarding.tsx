@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Box, ShoppingBag, ShieldCheck, Users, ArrowRight } from "lucide-react";
+import { Box, ShoppingBag, ShieldCheck, Users, ArrowRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "invenzo:welcome:v1";
@@ -19,29 +19,29 @@ const SLIDES: Slide[] = [
     title: "Welcome to Invenzo",
     body: "Your inventory, branches, and team — all in one place, built for mobile.",
     icon: Box,
-    color: "text-[#176b87]",
-    tint: "bg-[#176b87]/10",
+    color: "text-teal-300",
+    tint: "bg-teal-400/15",
   },
   {
     title: "Track stock in real time",
     body: "Add products, log sales and purchases, and watch inventory levels update instantly.",
     icon: ShoppingBag,
-    color: "text-[#147d78]",
-    tint: "bg-[#147d78]/10",
+    color: "text-emerald-300",
+    tint: "bg-emerald-400/15",
   },
   {
     title: "Manage branches & team",
     body: "Switch locations, assign roles, and keep every workspace member in sync.",
     icon: Users,
-    color: "text-[#24738f]",
-    tint: "bg-[#24738f]/10",
+    color: "text-cyan-300",
+    tint: "bg-cyan-400/15",
   },
   {
     title: "Built to work offline",
     body: "Installed on your home screen, it opens fast and keeps working without a signal.",
     icon: ShieldCheck,
-    color: "text-[#1d5e75]",
-    tint: "bg-[#1d5e75]/10",
+    color: "text-green-300",
+    tint: "bg-green-400/15",
   },
 ];
 
@@ -69,8 +69,6 @@ export function PwaOnboarding() {
   const isLast = index === SLIDES.length - 1;
 
   useEffect(() => {
-    // Mount-gate the overlay so server and first client render both output null,
-    // avoiding a hydration mismatch before painting the onboarding.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
@@ -79,28 +77,34 @@ export function PwaOnboarding() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col"
+      className="fixed inset-0 z-50 flex flex-col onboarding-fade-in"
       style={{ touchAction: "none" }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-[#176b87] to-[#147d78]" />
-      <div className="absolute inset-0 bg-black/25" />
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488] via-[#0f766e] to-[#134e4a]" />
+      <div className="absolute inset-0 bg-black/20" />
+
+      {/* Decorative floating orbs */}
+      <div className="absolute top-10 right-10 size-32 rounded-full bg-teal-400/10 blur-2xl onboarding-float" style={{ animationDelay: "0s" }} />
+      <div className="absolute bottom-20 left-10 size-24 rounded-full bg-emerald-400/10 blur-2xl onboarding-float" style={{ animationDelay: "1s" }} />
+      <div className="absolute top-1/3 left-1/4 size-16 rounded-full bg-cyan-400/10 blur-xl onboarding-float" style={{ animationDelay: "2s" }} />
+
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
-        <header className="flex items-center justify-between px-5 py-4 sm:px-6">
+        <header className="flex items-center justify-between px-5 py-4 sm:px-6 onboarding-slide-up">
           <button
             onClick={dismiss}
-            className="rounded-full p-2 bg-white/10 text-white hover:bg-white/20 transition"
+            className="rounded-full px-3 py-1.5 bg-white/10 text-white hover:bg-white/20 transition text-xs font-semibold tracking-wider uppercase opacity-80"
             aria-label="Skip onboarding"
           >
-            <span className="sr-only">Skip</span>
-            <span className="text-xs font-semibold tracking-wider uppercase opacity-80">Skip</span>
+            Skip
           </button>
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             {SLIDES.map((_, i) => (
               <div
                 key={i}
                 className={cn(
-                  "size-1.5 rounded-full transition-all duration-300",
-                  i <= index ? "bg-white" : "bg-white/30",
+                  "rounded-full transition-all duration-300",
+                  i === index ? "w-6 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30",
                 )}
               />
             ))}
@@ -108,28 +112,44 @@ export function PwaOnboarding() {
         </header>
 
         <main className="flex-1 overflow-hidden">
-          <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${index * 100}%)` }}>
+          <div
+            className="flex h-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
             {SLIDES.map((slide, i) => {
               const Icon = slide.icon;
               return (
-              <section
-                key={i}
-                className="flex flex-col items-center justify-center w-full px-6 sm:px-10 pb-10 sm:pb-0"
-              >
-                <div className={`flex shrink-0 items-center justify-center size-20 rounded-2xl mb-6 ${slide.tint} ${slide.color}`}>
-                  <Icon size={28} />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{slide.title}</h2>
-                <p className="mt-4 text-center text-sm sm:text-base text-white/90 leading-relaxed px-2 sm:px-8">
-                  {slide.body}
-                </p>
-              </section>
+                <section
+                  key={i}
+                  className="flex flex-col items-center justify-center w-full shrink-0 px-6 sm:px-10 pb-10 sm:pb-0"
+                >
+                  <div className="relative onboarding-scale-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                    {/* Pulse ring */}
+                    <div className={cn(
+                      "absolute inset-0 rounded-3xl onboarding-pulse-ring",
+                      slide.tint,
+                    )} />
+                    {/* Icon container */}
+                    <div className={cn(
+                      "relative flex items-center justify-center size-24 rounded-3xl mb-8 backdrop-blur-sm border border-white/10",
+                      slide.tint,
+                    )}>
+                      <Icon size={36} className={slide.color} />
+                    </div>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white text-center onboarding-slide-up" style={{ animationDelay: `${i * 0.05 + 0.1}s` }}>
+                    {slide.title}
+                  </h2>
+                  <p className="mt-4 text-center text-sm sm:text-base text-white/85 leading-relaxed px-2 sm:px-8 max-w-sm onboarding-slide-up" style={{ animationDelay: `${i * 0.05 + 0.2}s` }}>
+                    {slide.body}
+                  </p>
+                </section>
               );
             })}
           </div>
 
           {isLast ? (
-            <footer className="mt-auto px-6 sm:px-10 pb-8 sm:pb-10">
+            <footer className="mt-auto px-6 sm:px-10 pb-8 sm:pb-10 onboarding-slide-up" style={{ animationDelay: "0.3s" }}>
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:items-center">
                 <button
                   onClick={dismiss}
@@ -139,27 +159,28 @@ export function PwaOnboarding() {
                 </button>
                 <button
                   onClick={dismiss}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#176b87] shadow-lg hover:bg-white/90 transition"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#0f766e] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Get started <ArrowRight size={16} />
                 </button>
               </div>
-              <p className="mt-4 text-xs text-white/70 text-center">
+              <p className="mt-4 text-xs text-white/60 text-center">
                 Installed on your home screen &mdash; open anytime, even offline.
               </p>
             </footer>
           ) : (
-            <footer className="mt-auto px-6 sm:px-10 pb-8 sm:pb-10 flex justify-between items-center">
+            <footer className="mt-auto px-6 sm:px-10 pb-8 sm:pb-10 flex justify-between items-center onboarding-slide-up" style={{ animationDelay: "0.3s" }}>
               <button
                 onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
                 disabled={index === 0}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white/90 disabled:opacity-40 disabled:pointer-events-none transition"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white/90 disabled:opacity-30 disabled:pointer-events-none transition hover:bg-white/20"
               >
+                <ChevronLeft size={16} />
                 Back
               </button>
               <button
                 onClick={() => setIndex((prev) => Math.min(SLIDES.length - 1, prev + 1))}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#176b87] shadow-lg hover:bg-white/90 transition"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#0f766e] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
               >
                 Next <ArrowRight size={16} />
               </button>
@@ -167,7 +188,8 @@ export function PwaOnboarding() {
           )}
         </main>
 
-        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#147d78]/90 to-transparent pointer-events-none" />
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#134e4a]/80 to-transparent pointer-events-none" />
       </div>
     </div>
   );

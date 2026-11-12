@@ -184,4 +184,45 @@ button:focus-visible { outline: 2px solid #9be66b; outline-offset: 2px; }
 
 .animate-in { animation: rise-in .25s ease both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Onboarding animations */
+@keyframes onboarding-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes onboarding-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes onboarding-scale-in {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes onboarding-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes onboarding-pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+@keyframes onboarding-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.onboarding-fade-in { animation: onboarding-fade-in .4s ease both; }
+.onboarding-slide-up { animation: onboarding-slide-up .5s cubic-bezier(.22,1,.36,1) both; }
+.onboarding-scale-in { animation: onboarding-scale-in .5s cubic-bezier(.22,1,.36,1) both; }
+.onboarding-float { animation: onboarding-float 3s ease-in-out infinite; }
+.onboarding-pulse-ring { animation: onboarding-pulse-ring 2.5s ease-in-out infinite; }
+
+.onboarding-stagger > * { opacity: 0; animation: onboarding-slide-up .5s cubic-bezier(.22,1,.36,1) both; }
+.onboarding-stagger > *:nth-child(1) { animation-delay: .1s; }
+.onboarding-stagger > *:nth-child(2) { animation-delay: .2s; }
+.onboarding-stagger > *:nth-child(3) { animation-delay: .3s; }
+.onboarding-stagger > *:nth-child(4) { animation-delay: .4s; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
