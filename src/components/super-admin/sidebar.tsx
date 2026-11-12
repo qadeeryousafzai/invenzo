@@ -15,6 +15,7 @@ import {
   X,
   PanelLeftOpen,
   LogOut,
+  Globe2,
 } from "lucide-react";
 
 type MenuItem = {
@@ -38,6 +39,7 @@ const ROOT_MENU: (MenuItem | MenuGroup)[] = [
   { href: "/super-admin/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/super-admin/temp-disable", label: "Temp Disable Accounts", icon: Pause },
   { href: "/super-admin/messages", label: "Messages from User", icon: Mail },
+  { href: "/super-admin/catalog", label: "Medicine Catalog", icon: Globe2 },
   {
     label: "Businesses",
     href: "/super-admin/businesses",

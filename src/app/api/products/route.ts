@@ -23,6 +23,7 @@ const createSchema = z.object({
   initialQuantity: z.number().min(0).max(999999999).refine((value) => Math.abs(value * 1000 - Math.round(value * 1000)) < 0.000001).default(0),
   batchNumber: z.string().trim().max(64).optional(),
   expiryDate: z.iso.datetime().optional(),
+  catalogMedicineId: z.string().min(1).max(191).optional(),
   marketplaceEnabled: z.boolean().default(true),
   pickupEnabled: z.boolean().default(true),
   deliveryEnabled: z.boolean().default(false),
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
           description: data.description || null,
           imageUrl: data.imageUrl || null,
           unit: data.unit,
+          catalogMedicineId: data.catalogMedicineId ?? null,
         },
       });
       const listing = await tx.productListing.create({

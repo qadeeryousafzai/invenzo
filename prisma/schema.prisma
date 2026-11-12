@@ -57,28 +57,28 @@ enum StockMovementType {
 }
 
 model User {
-  id                  String                   @id @default(cuid())
-  name                String?
-  email               String                   @unique @db.VarChar(191)
-  emailVerified       DateTime?
-  image               String?                  @db.Text
-  passwordHash        String?                  @db.VarChar(255)
-  platformRole        PlatformRole             @default(USER)
-  tokenVersion        Int                      @default(0)
-  disabledAt          DateTime?
-  deletedAt           DateTime?
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
-  memberships         Membership[]
-  sentInvitations     MembershipInvite[]       @relation("InvitationSender")
-  emailTokens         EmailVerificationToken[]
-  passwordResetTokens PasswordResetToken[]
-  managedBranches     Branch[]                 @relation("BranchManager")
-  auditEvents         AuditLog[]
-  approvedBusinesses  Business[]               @relation("BusinessApprover")
-  statusChanges       BusinessStatusHistory[]  @relation("BusinessStatusActor")
-  notifications       Notification[]
-  stockMovements      StockMovement[]
+  id                         String                   @id @default(cuid())
+  name                       String?
+  email                      String                   @unique @db.VarChar(191)
+  emailVerified              DateTime?
+  image                      String?                  @db.Text
+  passwordHash               String?                  @db.VarChar(255)
+  platformRole               PlatformRole             @default(USER)
+  tokenVersion               Int                      @default(0)
+  disabledAt                 DateTime?
+  deletedAt                  DateTime?
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  memberships                Membership[]
+  sentInvitations            MembershipInvite[]       @relation("InvitationSender")
+  emailTokens                EmailVerificationToken[]
+  passwordResetTokens        PasswordResetToken[]
+  managedBranches            Branch[]                 @relation("BranchManager")
+  auditEvents                AuditLog[]
+  approvedBusinesses         Business[]               @relation("BusinessApprover")
+  statusChanges              BusinessStatusHistory[]  @relation("BusinessStatusActor")
+  notifications              Notification[]
+  stockMovements             StockMovement[]
   dispensedPrescriptionItems PrescriptionItem[]
 
   @@index([platformRole, disabledAt])
@@ -281,23 +281,25 @@ model Branch {
 }
 
 model Product {
-  id          String           @id @default(cuid())
-  businessId  String
-  name        String           @db.VarChar(191)
-  sku         String           @db.VarChar(64)
-  barcode     String?          @db.VarChar(128)
-  brand       String?          @db.VarChar(120)
-  category    String?          @db.VarChar(120)
-  categoryId  String?
-  description String?          @db.Text
-  imageUrl    String?          @db.Text
-  unit        String           @default("unit") @db.VarChar(32)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  deletedAt   DateTime?
-  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  categoryRef Category?        @relation(fields: [categoryId, businessId], references: [id, businessId], onDelete: Restrict)
-  listings    ProductListing[]
+  id                String           @id @default(cuid())
+  businessId        String
+  name              String           @db.VarChar(191)
+  sku               String           @db.VarChar(64)
+  barcode           String?          @db.VarChar(128)
+  brand             String?          @db.VarChar(120)
+  category          String?          @db.VarChar(120)
+  categoryId        String?
+  description       String?          @db.Text
+  imageUrl          String?          @db.Text
+  unit              String           @default("unit") @db.VarChar(32)
+  catalogMedicineId String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+  business          Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryRef       Category?        @relation(fields: [categoryId, businessId], references: [id, businessId], onDelete: Restrict)
+  catalogMedicine   Medicine?        @relation(fields: [catalogMedicineId], references: [id], onDelete: SetNull)
+  listings          ProductListing[]
 
   @@unique([businessId, sku])
   @@unique([businessId, barcode])
@@ -305,6 +307,7 @@ model Product {
   @@index([businessId, name, deletedAt])
   @@index([businessId, category, deletedAt])
   @@index([businessId, categoryId, deletedAt])
+  @@index([catalogMedicineId])
   @@map("products")
 }
 
@@ -326,19 +329,19 @@ model Category {
 }
 
 model ProductListing {
-  id                 String           @id @default(cuid())
+  id                 String             @id @default(cuid())
   businessId         String
   productId          String
   branchId           String
-  price              Decimal          @db.Decimal(12, 2)
-  marketplaceEnabled Boolean          @default(false)
-  pickupEnabled      Boolean          @default(true)
-  deliveryEnabled    Boolean          @default(false)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  business           Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  product            Product          @relation(fields: [productId, businessId], references: [id, businessId], onDelete: Cascade)
-  branch             Branch           @relation(fields: [branchId, businessId], references: [id, businessId], onDelete: Cascade)
+  price              Decimal            @db.Decimal(12, 2)
+  marketplaceEnabled Boolean            @default(false)
+  pickupEnabled      Boolean            @default(true)
+  deliveryEnabled    Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  business           Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product            Product            @relation(fields: [productId, businessId], references: [id, businessId], onDelete: Cascade)
+  branch             Branch             @relation(fields: [branchId, businessId], references: [id, businessId], onDelete: Cascade)
   batches            InventoryBatch[]
   stockMovements     StockMovement[]
   purchaseItems      PurchaseItem[]
@@ -659,23 +662,23 @@ enum BedStatus {
 }
 
 model Doctor {
-  id            String   @id @default(cuid())
-  businessId    String
-  name          String   @db.VarChar(191)
-  specialty     String   @db.VarChar(120)
-  phone         String?  @db.VarChar(40)
-  email         String?  @db.VarChar(191)
-  departmentId  String?
-  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  consultationFee Decimal? @db.Decimal(10, 2)
-  status        String   @default("ACTIVE") @db.VarChar(32)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
-  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  appointments  Appointment[]
-  prescriptions Prescription[]
-  admissions    Admission[]
+  id              String         @id @default(cuid())
+  businessId      String
+  name            String         @db.VarChar(191)
+  specialty       String         @db.VarChar(120)
+  phone           String?        @db.VarChar(40)
+  email           String?        @db.VarChar(191)
+  departmentId    String?
+  department      Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  consultationFee Decimal?       @db.Decimal(10, 2)
+  status          String         @default("ACTIVE") @db.VarChar(32)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  admissions      Admission[]
 
   @@unique([id, businessId])
   @@index([businessId, deletedAt, status])
@@ -684,19 +687,19 @@ model Doctor {
 }
 
 model Department {
-  id          String   @id @default(cuid())
-  businessId  String
-  name        String   @db.VarChar(120)
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  doctors     Doctor[]
-  services    Service[]
-  beds        Bed[]
+  id           String        @id @default(cuid())
+  businessId   String
+  name         String        @db.VarChar(120)
+  description  String?       @db.Text
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  doctors      Doctor[]
+  services     Service[]
+  beds         Bed[]
   appointments Appointment[]
-  admissions  Admission[]
+  admissions   Admission[]
 
   @@unique([businessId, name])
   @@unique([id, businessId])
@@ -705,18 +708,18 @@ model Department {
 }
 
 model Service {
-  id          String   @id @default(cuid())
-  businessId  String
+  id           String      @id @default(cuid())
+  businessId   String
   departmentId String?
-  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  name        String   @db.VarChar(191)
-  description String?  @db.Text
-  price       Decimal? @db.Decimal(10, 2)
-  duration    Int?     @default(30)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  name         String      @db.VarChar(191)
+  description  String?     @db.Text
+  price        Decimal?    @db.Decimal(10, 2)
+  duration     Int?        @default(30)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+  business     Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@unique([businessId, name])
   @@unique([id, businessId])
@@ -725,30 +728,30 @@ model Service {
 }
 
 model Patient {
-  id             String   @id @default(cuid())
-  businessId     String
-  patientId      String   @unique @db.VarChar(32)
-  firstName      String   @db.VarChar(100)
-  lastName       String   @db.VarChar(100)
-  dateOfBirth    DateTime?
-  gender         PatientGender? @default(OTHER)
-  phone          String?  @db.VarChar(40)
-  email          String?  @db.VarChar(191)
-  address        String?  @db.Text
-  emergencyContact String? @db.VarChar(191)
-  emergencyPhone String?  @db.VarChar(40)
-  allergies      String?  @db.Text
-  medicalHistory String?  @db.Text
-  bloodType      String?  @db.VarChar(10)
-  status         String   @default("ACTIVE") @db.VarChar(32)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
-  business       Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  appointments   Appointment[]
-  prescriptions  Prescription[]
-  admissions     Admission[]
-  beds           Bed[]
+  id               String         @id @default(cuid())
+  businessId       String
+  patientId        String         @unique @db.VarChar(32)
+  firstName        String         @db.VarChar(100)
+  lastName         String         @db.VarChar(100)
+  dateOfBirth      DateTime?
+  gender           PatientGender? @default(OTHER)
+  phone            String?        @db.VarChar(40)
+  email            String?        @db.VarChar(191)
+  address          String?        @db.Text
+  emergencyContact String?        @db.VarChar(191)
+  emergencyPhone   String?        @db.VarChar(40)
+  allergies        String?        @db.Text
+  medicalHistory   String?        @db.Text
+  bloodType        String?        @db.VarChar(10)
+  status           String         @default("ACTIVE") @db.VarChar(32)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+  business         Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointments     Appointment[]
+  prescriptions    Prescription[]
+  admissions       Admission[]
+  beds             Bed[]
 
   @@unique([id, businessId])
   @@index([businessId, deletedAt])
@@ -758,24 +761,24 @@ model Patient {
 }
 
 model Appointment {
-  id            String   @id @default(cuid())
-  businessId    String
-  appointmentId String   @unique @db.VarChar(32)
-  patientId     String
-  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
-  doctorId      String?
-  doctor        Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
-  departmentId  String?
-  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  id              String            @id @default(cuid())
+  businessId      String
+  appointmentId   String            @unique @db.VarChar(32)
+  patientId       String
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctorId        String?
+  doctor          Doctor?           @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  departmentId    String?
+  department      Department?       @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   appointmentDate DateTime
-  appointmentTime String   @db.VarChar(10)
-  reason        String?  @db.Text
-  status        AppointmentStatus @default(SCHEDULED)
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  createdById   String?
-  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointmentTime String            @db.VarChar(10)
+  reason          String?           @db.Text
+  status          AppointmentStatus @default(SCHEDULED)
+  notes           String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String?
+  business        Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@unique([id, businessId])
   @@index([businessId, appointmentDate])
@@ -786,21 +789,21 @@ model Appointment {
 }
 
 model Prescription {
-  id            String   @id @default(cuid())
-  businessId    String
-  prescriptionId String  @unique @db.VarChar(32)
-  patientId     String
-  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
-  doctorId      String?
-  doctor        Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
-  prescriptionDate DateTime @default(now())
-  status        PrescriptionStatus @default(ACTIVE)
-  notes         String?  @db.Text
-  instructions  String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  items         PrescriptionItem[]
+  id               String             @id @default(cuid())
+  businessId       String
+  prescriptionId   String             @unique @db.VarChar(32)
+  patientId        String
+  patient          Patient            @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctorId         String?
+  doctor           Doctor?            @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  prescriptionDate DateTime           @default(now())
+  status           PrescriptionStatus @default(ACTIVE)
+  notes            String?            @db.Text
+  instructions     String?            @db.Text
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  business         Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  items            PrescriptionItem[]
 
   @@unique([id, businessId])
   @@index([businessId, patientId])
@@ -810,22 +813,22 @@ model Prescription {
 }
 
 model PrescriptionItem {
-  id               String   @id @default(cuid())
-  businessId       String
-  prescriptionId   String
-  prescription     Prescription   @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
-  productListingId String
-  listing          ProductListing   @relation(fields: [productListingId], references: [id], onDelete: Restrict)
-  dosage           String   @db.VarChar(100)
-  frequency        String   @db.VarChar(100)
-  duration         String   @db.VarChar(100)
-  quantity         Decimal  @db.Decimal(10, 2)
-  dispensedQuantity Decimal @db.Decimal(10, 2) @default(0)
-  instructions     String?  @db.Text
-  dispensedAt      DateTime?
-  dispensedById    String?
-  dispensedBy      User?   @relation(fields: [dispensedById], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
+  id                String         @id @default(cuid())
+  businessId        String
+  prescriptionId    String
+  prescription      Prescription   @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  productListingId  String
+  listing           ProductListing @relation(fields: [productListingId], references: [id], onDelete: Restrict)
+  dosage            String         @db.VarChar(100)
+  frequency         String         @db.VarChar(100)
+  duration          String         @db.VarChar(100)
+  quantity          Decimal        @db.Decimal(10, 2)
+  dispensedQuantity Decimal        @default(0) @db.Decimal(10, 2)
+  instructions      String?        @db.Text
+  dispensedAt       DateTime?
+  dispensedById     String?
+  dispensedBy       User?          @relation(fields: [dispensedById], references: [id], onDelete: SetNull)
+  createdAt         DateTime       @default(now())
 
   @@unique([id, businessId])
   @@index([businessId, prescriptionId])
@@ -833,26 +836,26 @@ model PrescriptionItem {
 }
 
 model Admission {
-  id            String   @id @default(cuid())
-  businessId    String
-  admissionId   String   @unique @db.VarChar(32)
-  patientId     String
-  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
-  doctorId      String?
-  doctor        Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
-  departmentId  String?
-  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  bedId         String?
-  bed           Bed?      @relation(fields: [bedId], references: [id], onDelete: SetNull)
-  admissionDate DateTime @default(now())
-  dischargeDate DateTime?
-  admissionReason String? @db.Text
-  dischargeReason String? @db.Text
-  status        AdmissionStatus @default(ADMITTED)
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id              String          @id @default(cuid())
+  businessId      String
+  admissionId     String          @unique @db.VarChar(32)
+  patientId       String
+  patient         Patient         @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctorId        String?
+  doctor          Doctor?         @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  departmentId    String?
+  department      Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  bedId           String?
+  bed             Bed?            @relation(fields: [bedId], references: [id], onDelete: SetNull)
+  admissionDate   DateTime        @default(now())
+  dischargeDate   DateTime?
+  admissionReason String?         @db.Text
+  dischargeReason String?         @db.Text
+  status          AdmissionStatus @default(ADMITTED)
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@unique([id, businessId])
   @@index([businessId, patientId])
@@ -862,22 +865,22 @@ model Admission {
 }
 
 model Bed {
-  id          String   @id @default(cuid())
-  businessId  String
-  branchId    String?
-  branch      Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  id           String      @id @default(cuid())
+  businessId   String
+  branchId     String?
+  branch       Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
   departmentId String?
-  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  bedNumber   String   @db.VarChar(32)
-  bedType     BedType  @default(GENERAL)
-  status      BedStatus @default(AVAILABLE)
-  patientId   String?
-  patient     Patient?  @relation(fields: [patientId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  admissions  Admission[]
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  bedNumber    String      @db.VarChar(32)
+  bedType      BedType     @default(GENERAL)
+  status       BedStatus   @default(AVAILABLE)
+  patientId    String?
+  patient      Patient?    @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+  business     Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  admissions   Admission[]
 
   @@unique([businessId, bedNumber])
   @@unique([id, businessId])
@@ -887,20 +890,273 @@ model Bed {
 }
 
 model Income {
-  id          String   @id @default(cuid())
-  businessId  String
-  title       String   @db.VarChar(191)
-  category    String   @db.VarChar(120)
-  amount      Decimal  @db.Decimal(14, 2)
-  date        DateTime @default(now())
-  paymentMethod String? @db.VarChar(50)
-  reference   String?  @db.VarChar(191)
-  notes       String?  @db.Text
-  createdById String?
-  createdAt   DateTime @default(now())
-  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  businessId    String
+  title         String   @db.VarChar(191)
+  category      String   @db.VarChar(120)
+  amount        Decimal  @db.Decimal(14, 2)
+  date          DateTime @default(now())
+  paymentMethod String?  @db.VarChar(50)
+  reference     String?  @db.VarChar(191)
+  notes         String?  @db.Text
+  createdById   String?
+  createdAt     DateTime @default(now())
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId, date])
   @@index([businessId, category, date])
   @@map("incomes")
+}
+
+/// Global Medicine Catalog — shared, read-only reference data imported from
+/// authoritative public datasets. Tenant pharmacies reference catalog rows but
+/// never write to them; pharmacy-specific stock/pricing stays in Product.
+model MedicineSource {
+  id                    String    @id @default(cuid())
+  key                   String    @unique @db.VarChar(64)
+  name                  String    @db.VarChar(191)
+  countryCode           String?   @db.Char(2)
+  countryName           String?   @db.VarChar(120)
+  homepageUrl           String?   @db.VarChar(500)
+  datasetUrl            String?   @db.VarChar(1000)
+  licenseName           String?   @db.VarChar(191)
+  licenseUrl            String?   @db.VarChar(1000)
+  attributionRequired   Boolean   @default(false)
+  redistributionAllowed Boolean   @default(false)
+  commercialUseAllowed  Boolean   @default(false)
+  termsReviewedAt       DateTime?
+  adapterKey            String?   @db.VarChar(64)
+  notes                 String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  medicines             Medicine[]
+  sourceRecords         MedicineSourceRecord[]
+  importJobs            MedicineImportJob[]
+  medicineManufacturers MedicineManufacturer[]
+
+  @@index([countryCode])
+  @@map("medicine_sources")
+}
+
+model MedicineCategory {
+  id          String   @id @default(cuid())
+  key         String   @unique @db.VarChar(64)
+  name        String   @db.VarChar(120)
+  parentId    String?
+  description String?  @db.VarChar(500)
+  createdAt   DateTime @default(now())
+
+  parent    MedicineCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  MedicineCategory[] @relation("CategoryTree")
+  medicines Medicine[]
+
+  @@index([parentId])
+  @@map("medicine_categories")
+}
+
+model MedicineManufacturer {
+  id          String   @id @default(cuid())
+  key         String   @unique @db.VarChar(191)
+  name        String   @db.VarChar(191)
+  countryCode String?  @db.Char(2)
+  sourceId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  source    MedicineSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  medicines Medicine[]
+
+  @@index([name])
+  @@index([countryCode])
+  @@index([sourceId])
+  @@map("medicine_manufacturers")
+}
+
+model Medicine {
+  id               String   @id @default(cuid())
+  canonicalKey     String   @unique @db.VarChar(191)
+  sourceId         String
+  sourceRecordId   String   @db.VarChar(191)
+  brandName        String?  @db.VarChar(191)
+  genericName      String?  @db.VarChar(191)
+  displayName      String   @db.VarChar(191)
+  nameNormalized   String   @db.VarChar(191)
+  searchText       String?  @db.Text
+  strengthText     String?  @db.VarChar(191)
+  dosageForm       String?  @db.VarChar(120)
+  route            String?  @db.VarChar(120)
+  atcCode          String?  @db.VarChar(32)
+  manufacturerId   String?
+  categoryId       String?
+  countryCode      String?  @db.Char(2)
+  regulatoryStatus String?  @db.VarChar(64)
+  isBrand          Boolean  @default(false)
+  isGeneric        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  source        MedicineSource         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  manufacturer  MedicineManufacturer?  @relation(fields: [manufacturerId], references: [id], onDelete: SetNull)
+  category      MedicineCategory?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  ingredients   MedicineIngredient[]
+  identifiers   MedicineIdentifier[]
+  packages      MedicinePackage[]
+  aliases       MedicineAlias[]
+  sourceRecords MedicineSourceRecord[]
+  products      Product[]
+
+  @@index([sourceId, sourceRecordId])
+  @@index([genericName])
+  @@index([brandName])
+  @@index([displayName])
+  @@index([nameNormalized])
+  @@index([strengthText])
+  @@index([dosageForm])
+  @@index([atcCode])
+  @@index([manufacturerId])
+  @@index([categoryId])
+  @@index([countryCode])
+  @@index([isBrand])
+  @@index([isGeneric])
+  @@fulltext([searchText])
+  @@map("medicines")
+}
+
+model MedicineIngredient {
+  id           String   @id @default(cuid())
+  medicineId   String
+  name         String   @db.VarChar(191)
+  role         String?  @db.VarChar(64)
+  strengthText String?  @db.VarChar(191)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@index([name])
+  @@map("medicine_ingredients")
+}
+
+model MedicineIdentifier {
+  id         String   @id @default(cuid())
+  medicineId String
+  system     String   @db.VarChar(120)
+  value      String   @db.VarChar(191)
+  use        String?  @db.VarChar(32)
+  createdAt  DateTime @default(now())
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@index([system, value])
+  @@index([value])
+  @@map("medicine_identifiers")
+}
+
+model MedicinePackage {
+  id               String   @id @default(cuid())
+  medicineId       String
+  description      String?  @db.VarChar(500)
+  quantityValue    String?  @db.VarChar(64)
+  quantityUnit     String?  @db.VarChar(64)
+  gtin             String?  @db.VarChar(64)
+  regulatoryStatus String?  @db.VarChar(64)
+  marketingStatus  String?  @db.VarChar(64)
+  sourceRecordId   String?  @db.VarChar(191)
+  createdAt        DateTime @default(now())
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@index([gtin])
+  @@map("medicine_packages")
+}
+
+model MedicineSourceRecord {
+  id                    String    @id @default(cuid())
+  sourceId              String
+  sourceRecordId        String    @db.VarChar(191)
+  medicineId            String?
+  countryCode           String?   @db.Char(2)
+  sourceUpdatedAt       DateTime?
+  importedAt            DateTime  @default(now())
+  licenseName           String?   @db.VarChar(191)
+  licenseUrl            String?   @db.VarChar(1000)
+  attributionRequired   Boolean   @default(false)
+  redistributionAllowed Boolean   @default(false)
+  commercialUseAllowed  Boolean   @default(false)
+  rawKey                String?   @db.VarChar(191)
+  notes                 String?   @db.Text
+
+  source   MedicineSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  medicine Medicine?      @relation(fields: [medicineId], references: [id], onDelete: SetNull)
+
+  @@unique([sourceId, sourceRecordId])
+  @@index([medicineId])
+  @@index([sourceId])
+  @@index([countryCode])
+  @@map("medicine_source_records")
+}
+
+model MedicineAlias {
+  id         String   @id @default(cuid())
+  medicineId String
+  alias      String   @db.VarChar(191)
+  aliasType  String   @default("OTHER") @db.VarChar(32)
+  sourceId   String?
+  createdAt  DateTime @default(now())
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@index([alias])
+  @@index([aliasType])
+  @@map("medicine_aliases")
+}
+
+model MedicineImportJob {
+  id               String    @id @default(cuid())
+  sourceId         String
+  status           String    @default("PENDING") @db.VarChar(24)
+  datasetUrl       String?   @db.VarChar(1000)
+  datasetLabel     String?   @db.VarChar(191)
+  totalRecords     Int       @default(0)
+  processedRecords Int       @default(0)
+  importedRecords  Int       @default(0)
+  duplicateRecords Int       @default(0)
+  failedRecords    Int       @default(0)
+  cursor           String?   @db.Text
+  lastBatchSize    Int       @default(0)
+  errorMessage     String?   @db.Text
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  createdById      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  source MedicineSource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  errors MedicineImportError[]
+
+  @@index([sourceId, status])
+  @@index([status])
+  @@index([createdAt])
+  @@map("medicine_import_jobs")
+}
+
+model MedicineImportError {
+  id             String   @id @default(cuid())
+  jobId          String
+  sourceRecordId String?  @db.VarChar(191)
+  stage          String?  @db.VarChar(64)
+  message        String   @db.Text
+  details        Json?
+  createdAt      DateTime @default(now())
+
+  job MedicineImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([stage])
+  @@map("medicine_import_errors")
 }

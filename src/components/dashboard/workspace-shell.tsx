@@ -9,7 +9,7 @@ import {
   ChartNoAxesCombined, ReceiptText, Bell, ChevronDown, ChevronRight, Menu, X, Search, LogOut, Settings,
   PanelLeftClose, PanelLeftOpen, ClipboardList, RotateCcw, FileText, CreditCard, Pill, AlertTriangle,
   BarChart2, Wallet, ClipboardCheck, ArrowRightLeft, UserCircle2, Stethoscope, Calendar, Briefcase,
-  ClipboardPen, Users as UsersIcon, File, Layers, Clock, Database, Bed as BedIcon, Barcode, UserPlus, Package,
+  ClipboardPen, Users as UsersIcon, File, Layers, Clock, Database, Bed as BedIcon, Barcode, UserPlus, Package, Globe2,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { WorkspaceControls } from "@/components/dashboard/workspace-controls";
@@ -28,6 +28,7 @@ const SIDEBAR_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { label: "Inventory", icon: Boxes, children: [
     { href: "/dashboard/products", label: "Medicines", icon: Pill, permission: "products.view" },
+    { href: "/dashboard/catalog", label: "Medicine Catalog", icon: Globe2, permission: "products.view" },
     { href: "/dashboard/categories", label: "Categories", icon: Tags, permission: "categories.manage" },
     { href: "/dashboard/brands", label: "Brands", icon: File, permission: "categories.manage" },
     { href: "/dashboard/units", label: "Units", icon: Layers, permission: "categories.manage" },
