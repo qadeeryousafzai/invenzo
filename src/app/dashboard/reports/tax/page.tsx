@@ -19,7 +19,7 @@ export default async function TaxReportsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true, taxId: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const salesThisMonth = sales.filter((row) => inThisMonth(row.soldAt));
   const purchasesThisMonth = purchases.filter((row) => inThisMonth(row.purchasedAt));
   const expensesThisMonth = expenses.filter((row) => inThisMonth(row.incurredAt));

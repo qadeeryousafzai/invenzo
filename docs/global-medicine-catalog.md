@@ -59,6 +59,18 @@ Large jobs download the archive to the server's temp directory first, then strea
 several minutes for the multi-gigabyte DailyMed releases. Imports are skipped for sources whose
 licence is not cleared (`who-inn`, `ema`, `drap`).
 
+### Importing an already-extracted release
+
+When a release is already on disk (for example `src/medicine/us-base-2026.11/` containing
+`database/medication.sqlite` and `manifest.json`), import it without re-downloading:
+
+```bash
+npx tsx --env-file=.env scripts/import-catalog.ts --dir src/medicine/us-base-2026.11 --batch 500
+```
+
+The script creates a `medicine_import_jobs` row, streams the dataset, and prints progress every
+15 seconds. The US release (116 552 products) imports in ~24 minutes with a batch size of 500.
+
 ### Dataset options
 
 | Source | Default dataset | Notes |

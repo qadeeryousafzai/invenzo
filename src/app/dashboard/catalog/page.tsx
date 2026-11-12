@@ -26,7 +26,10 @@ export default async function CatalogPage() {
     orderBy: { name: "asc" },
   });
 
-  const medicineCount = await prisma.medicine.count();
+  const [medicineCount, stockedCount] = await Promise.all([
+    prisma.medicine.count(),
+    prisma.productListing.count({ where: { businessId: context.businessId, product: { deletedAt: null } } }),
+  ]);
 
   return (
     <div className="space-y-5 p-4 md:p-6">
@@ -36,8 +39,9 @@ export default async function CatalogPage() {
             <Globe2 size={18} /> Global Medicine Catalog
           </h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-600">
-            Search public drug datasets — Open Medication Catalog, RxNorm, FDA NDC and DailyMed — to add medicines without typing
-            them by hand. {new Intl.NumberFormat("en-US").format(medicineCount)} medicines are available.
+            Every medicine from the global catalog is listed here with its stock — zero until you add it. You already carry{" "}
+            {new Intl.NumberFormat("en-US").format(stockedCount)} of the {new Intl.NumberFormat("en-US").format(medicineCount)}{" "}
+            catalog medicines; add stock to those, or bring a new one into your inventory.
           </p>
         </div>
       </header>

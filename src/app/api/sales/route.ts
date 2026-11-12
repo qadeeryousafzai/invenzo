@@ -107,7 +107,9 @@ export async function POST(request: Request) {
           reference,
           notes,
           total,
-          items: { create: lineTotals.map(({ item, quantity, unitPrice, lineTotal }) => ({ businessId: context.businessId, productListingId: item.productListingId, quantity, unitPrice, lineTotal })) },
+          // `businessId` is part of the compound (saleId, businessId) relation and is
+          // filled by Prisma, so it must not be passed inside the nested create.
+          items: { create: lineTotals.map(({ item, quantity, unitPrice, lineTotal }) => ({ productListingId: item.productListingId, quantity, unitPrice, lineTotal })) },
         },
         include: { items: true, customer: { select: { name: true } }, branch: { select: { name: true } } },
       });

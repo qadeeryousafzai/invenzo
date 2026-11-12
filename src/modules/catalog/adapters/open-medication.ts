@@ -1,9 +1,10 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { downloadFile } from "@/lib/dataset-fetch";
 import { extractZip } from "@/lib/archive";
 import { openSqliteReadOnly, type SqliteReader } from "../sqlite";
-import { cleanStrengthText, cleanText, combineStrengths, normalizeDosageForm } from "../normalize";
+import { cleanStrengthText, cleanText, combineStrengths, normalizeDosageForm, normalizeName } from "../normalize";
 import type { AdapterInput, CatalogAdapter, NormalizedMedicine } from "../types";
 
 const CATALOG_INDEX_URL = "https://openmedicationcatalog.org/catalog.json";
@@ -65,6 +66,19 @@ class OpenMedicationAdapter implements CatalogAdapter {
 
   async prepare(input: AdapterInput): Promise<void> {
     this.artifactKey = input.datasetLabel?.trim() || "us-base";
+
+    const localDir = input.localDir?.trim();
+    if (localDir) {
+      const dbPath = path.join(localDir, "database", "medication.sqlite");
+      if (!existsSync(dbPath)) throw new Error(`No medication.sqlite was found in ${localDir}.`);
+      this.db = await openSqliteReadOnly(dbPath);
+      try {
+        this.manifest = JSON.parse(await readFile(path.join(localDir, "manifest.json"), "utf8")) as Manifest;
+      } catch {
+        this.manifest = null;
+      }
+      return;
+    }
 
     const indexPath = path.join(input.workDir, "catalog.json");
     await downloadFile(CATALOG_INDEX_URL, indexPath);
@@ -179,15 +193,23 @@ class OpenMedicationAdapter implements CatalogAdapter {
       const holderId = authorization?.holderId ?? (product.product_group_id ? groupHolders.get(product.product_group_id) ?? null : null);
       const holder = holderId ? organizations.get(holderId) ?? null : null;
 
-      const genericName = ingredients[0]?.name ?? product.name ?? null;
+      const ingredientName = ingredients[0]?.name ?? null;
+      const productName = cleanText(product.name);
+      // US NDC names are the marketed product name; when it differs from the
+      // active ingredient it is the brand (e.g. "PANADOL 160 mg").
+      const branded = Boolean(
+        productName && ingredientName && normalizeName(productName) !== normalizeName(ingredientName),
+      );
+      const brandName = branded && productName ? stripStrengthSuffix(productName) : null;
+      const genericName = ingredientName ?? productName;
       const strengthText = combineStrengths(ingredients.map((ingredient) => ingredient.strength_text));
       const dosageForm = normalizeDosageForm(product.dose_form);
-      const displayName = [product.name, strengthText].filter(Boolean).join(" ").trim() || product.name;
+      const displayName = [productName, strengthText].filter(Boolean).join(" ").trim() || productName || product.id;
 
       yield {
         sourceKey: "omc",
         sourceRecordId: product.id,
-        brandName: null,
+        brandName,
         genericName,
         displayName,
         strengthText,
@@ -226,6 +248,16 @@ class OpenMedicationAdapter implements CatalogAdapter {
     this.db = null;
     this.manifest = null;
   }
+}
+
+/** Remove trailing strength tokens such as "500 mg + 2 mg + 15 mg" from a product name. */
+function stripStrengthSuffix(name: string): string {
+  const pattern = new RegExp(
+    "\\s*[,;]?\\s*(?:(?:\\d*\\.?\\d+)\\s*(?:mg\\/ml|mcg\\/ml|g\\/100g|mg\\/g|mg|mcg|µg|ug|ml|l|iu|units?|%)\\s*\\+?\\s*)+$",
+    "i",
+  );
+  const cleaned = name.replace(pattern, "").replace(/\s{2,}/g, " ").trim();
+  return (cleaned || name).slice(0, 191);
 }
 
 export const openMedicationAdapter = new OpenMedicationAdapter();

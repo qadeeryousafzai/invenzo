@@ -39,8 +39,8 @@ type TopSelling = { productListingId: string; name: string; branch: string; quan
 type Stats = { todaySales: number; totalRevenue: number; totalMedicines: number; totalCustomers: number; lowStock: number; expiringSoon: number; todayPurchases: number; netProfit: number; revenueGrowth: number };
 
 const PIE = ["#16a34a", "#b7e532", "#86efac", "#4ade80", "#22c55e", "#bbf7d0"];
-const money = (value: number, currency = "USD") => value.toLocaleString("en-US", { style: "currency", currency, maximumFractionDigits: 0 });
-const money2 = (value: number, currency = "USD") => value.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (value: number, currency = "PKR") => value.toLocaleString("en-US", { style: "currency", currency, maximumFractionDigits: 0 });
+const money2 = (value: number, currency = "PKR") => value.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const shortDate = (value: Date | string) => new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 function StatCard({ label, value, sub, icon: Icon, accent = false }: { label: string; value: string; sub: string; icon: React.ElementType; accent?: boolean }) {
@@ -73,7 +73,7 @@ export function DashboardClient({
   revenueChartData,
   categoryChartData,
   permissions,
-  currency = "USD",
+  currency = "PKR",
 }: {
   businessName: string;
   greetingName: string;

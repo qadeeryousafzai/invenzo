@@ -1,6 +1,11 @@
 -- Global Medicine Catalog
 -- Additive, forward-only migration. Safe to apply to an existing production
 -- database: creates new tables and adds one nullable column to `products`.
+--
+-- MariaDB (used by the Hostinger deployment) does not accept `ADD CONSTRAINT`
+-- inside `CREATE TABLE`, so every foreign key is applied with a separate
+-- `ALTER TABLE` statement after the tables exist.
+
 
 CREATE TABLE `medicine_sources` (
   `id` VARCHAR(191) NOT NULL,
@@ -36,8 +41,7 @@ CREATE TABLE `medicine_categories` (
 
   UNIQUE INDEX `medicine_categories_key_key`(`key`),
   INDEX `medicine_categories_parentId_idx`(`parentId`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_categories_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `medicine_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_manufacturers` (
@@ -53,8 +57,7 @@ CREATE TABLE `medicine_manufacturers` (
   INDEX `medicine_manufacturers_name_idx`(`name`),
   INDEX `medicine_manufacturers_countryCode_idx`(`countryCode`),
   INDEX `medicine_manufacturers_sourceId_idx`(`sourceId`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_manufacturers_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicines` (
@@ -95,10 +98,7 @@ CREATE TABLE `medicines` (
   INDEX `medicines_isBrand_idx`(`isBrand`),
   INDEX `medicines_isGeneric_idx`(`isGeneric`),
   FULLTEXT INDEX `medicines_searchText_idx`(`searchText`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicines_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `medicines_manufacturerId_fkey` FOREIGN KEY (`manufacturerId`) REFERENCES `medicine_manufacturers`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `medicines_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `medicine_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_ingredients` (
@@ -112,8 +112,7 @@ CREATE TABLE `medicine_ingredients` (
 
   INDEX `medicine_ingredients_medicineId_idx`(`medicineId`),
   INDEX `medicine_ingredients_name_idx`(`name`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_ingredients_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_identifiers` (
@@ -127,8 +126,7 @@ CREATE TABLE `medicine_identifiers` (
   INDEX `medicine_identifiers_medicineId_idx`(`medicineId`),
   INDEX `medicine_identifiers_system_value_idx`(`system`, `value`),
   INDEX `medicine_identifiers_value_idx`(`value`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_identifiers_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_packages` (
@@ -145,8 +143,7 @@ CREATE TABLE `medicine_packages` (
 
   INDEX `medicine_packages_medicineId_idx`(`medicineId`),
   INDEX `medicine_packages_gtin_idx`(`gtin`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_packages_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_source_records` (
@@ -169,9 +166,7 @@ CREATE TABLE `medicine_source_records` (
   INDEX `medicine_source_records_medicineId_idx`(`medicineId`),
   INDEX `medicine_source_records_sourceId_idx`(`sourceId`),
   INDEX `medicine_source_records_countryCode_idx`(`countryCode`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_source_records_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `medicine_source_records_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_aliases` (
@@ -185,8 +180,7 @@ CREATE TABLE `medicine_aliases` (
   INDEX `medicine_aliases_medicineId_idx`(`medicineId`),
   INDEX `medicine_aliases_alias_idx`(`alias`),
   INDEX `medicine_aliases_aliasType_idx`(`aliasType`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_aliases_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_import_jobs` (
@@ -212,8 +206,7 @@ CREATE TABLE `medicine_import_jobs` (
   INDEX `medicine_import_jobs_sourceId_status_idx`(`sourceId`, `status`),
   INDEX `medicine_import_jobs_status_idx`(`status`),
   INDEX `medicine_import_jobs_createdAt_idx`(`createdAt`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_import_jobs_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `medicine_import_errors` (
@@ -227,11 +220,41 @@ CREATE TABLE `medicine_import_errors` (
 
   INDEX `medicine_import_errors_jobId_idx`(`jobId`),
   INDEX `medicine_import_errors_stage_idx`(`stage`),
-  PRIMARY KEY (`id`),
-  ADD CONSTRAINT `medicine_import_errors_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `medicine_import_jobs`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ALTER TABLE `products`
-  ADD COLUMN `catalogMedicineId` VARCHAR(191) NULL,
-  ADD INDEX `products_catalogMedicineId_idx`(`catalogMedicineId`),
-  ADD CONSTRAINT `products_catalogMedicineId_fkey` FOREIGN KEY (`catalogMedicineId`) REFERENCES `medicines`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD COLUMN `catalogMedicineId` VARCHAR(191) NULL;
+
+ALTER TABLE `products`
+  ADD INDEX `products_catalogMedicineId_idx`(`catalogMedicineId`);
+
+
+-- Foreign keys (MariaDB requires these as separate ALTER statements)
+ALTER TABLE `medicine_categories` ADD CONSTRAINT `medicine_categories_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `medicine_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_manufacturers` ADD CONSTRAINT `medicine_manufacturers_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `medicines` ADD CONSTRAINT `medicines_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicines` ADD CONSTRAINT `medicines_manufacturerId_fkey` FOREIGN KEY (`manufacturerId`) REFERENCES `medicine_manufacturers`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `medicines` ADD CONSTRAINT `medicines_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `medicine_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_ingredients` ADD CONSTRAINT `medicine_ingredients_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_identifiers` ADD CONSTRAINT `medicine_identifiers_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_packages` ADD CONSTRAINT `medicine_packages_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_source_records` ADD CONSTRAINT `medicine_source_records_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_source_records` ADD CONSTRAINT `medicine_source_records_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_aliases` ADD CONSTRAINT `medicine_aliases_medicineId_fkey` FOREIGN KEY (`medicineId`) REFERENCES `medicines`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_import_jobs` ADD CONSTRAINT `medicine_import_jobs_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `medicine_sources`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `medicine_import_errors` ADD CONSTRAINT `medicine_import_errors_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `medicine_import_jobs`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+

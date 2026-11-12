@@ -19,7 +19,7 @@ const registrationSchema = z.object({
   description: z.string().trim().max(2000).optional(),
   taxId: z.string().trim().max(100).optional(),
   website: z.url().max(255).optional(),
-  currency: z.string().regex(/^[A-Z]{3}$/).default("USD"),
+  currency: z.string().regex(/^[A-Z]{3}$/).default("PKR"),
   timezone: z.string().trim().min(1).max(64).default("UTC"),
   branchName: z.string().trim().min(2).max(191),
   branchCode: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9_-]+$/).default("MAIN"),

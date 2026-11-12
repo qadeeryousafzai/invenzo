@@ -15,7 +15,7 @@ export default async function CustomerReportsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const customerIds = saleStats.map((row) => row.customerId).filter((id): id is string => !!id);
   const customerRecords = customerIds.length ? await prisma.customer.findMany({ where: { id: { in: customerIds } }, select: { id: true, name: true, phone: true, email: true } }) : [];
   const customerMap = new Map(customerRecords.map((customer) => [customer.id, customer]));

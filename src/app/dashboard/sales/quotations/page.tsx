@@ -15,7 +15,7 @@ export default async function QuotationsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
 
   return (
     <div className="space-y-6">

@@ -46,9 +46,9 @@ const useFormField = <TFieldValues extends FieldValues = FieldValues>() => {
   const field = {
     name,
     value: formContext.getValues(name),
-    onChange: (value: unknown) => formContext.setValue(name, value as any, { shouldValidate: true }),
+    onChange: (value: unknown) => formContext.setValue(name, value as TFieldValues[typeof name], { shouldValidate: true }),
     onBlur: () => formContext.trigger(name),
-    ref: (el: HTMLElement | null) => { },
+    ref: (_el: HTMLElement | null) => { },
   };
   return { field, fieldState, formState: formContext.formState };
 };

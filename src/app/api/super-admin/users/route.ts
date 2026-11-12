@@ -96,7 +96,7 @@ export async function POST(request: Request) {
           email,
           phone: data.phone,
           address: data.address,
-          currency: "USD",
+          currency: "PKR",
           timezone: "UTC",
           accountStatus: "ACTIVE",
           subscriptionStartedAt: new Date(),

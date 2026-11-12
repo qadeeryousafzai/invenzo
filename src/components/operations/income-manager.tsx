@@ -9,7 +9,7 @@ type IncomeRow = { id: string; title: string; category: string; amount: string; 
 
 const METHODS = ["Cash", "Bank Transfer", "Card", "Cheque", "Mobile Payment", "Other"];
 
-export function IncomeManager({ rows, canManage, currency = "USD" }: { rows: IncomeRow[]; canManage: boolean; currency?: string }) {
+export function IncomeManager({ rows, canManage, currency = "PKR" }: { rows: IncomeRow[]; canManage: boolean; currency?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

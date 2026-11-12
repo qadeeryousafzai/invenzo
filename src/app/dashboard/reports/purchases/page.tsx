@@ -22,7 +22,7 @@ export default async function PurchaseReportsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const supplierIds = bySupplier.map((row) => row.supplierId).filter((id): id is string => !!id);
   const supplierNames = supplierIds.length ? await prisma.supplier.findMany({ where: { id: { in: supplierIds } }, select: { id: true, name: true } }) : [];
   const supplierMap = new Map(supplierNames.map((supplier) => [supplier.id, supplier.name]));

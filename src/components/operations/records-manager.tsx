@@ -14,7 +14,7 @@ const config: Record<Kind, { title: string; endpoint: string; fields: string[]; 
   expenses: { title: "Expenses", endpoint: "/api/expenses", fields: ["title", "category", "amount", "incurredAt", "notes"], label: "Expense" },
 };
 
-export function RecordsManager({ kind, rows, canCreate, currency = "USD" }: { kind: Kind; rows: Row[]; canCreate: boolean; currency?: string }) {
+export function RecordsManager({ kind, rows, canCreate, currency = "PKR" }: { kind: Kind; rows: Row[]; canCreate: boolean; currency?: string }) {
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const router = useRouter(); const spec = config[kind];
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = event.currentTarget; const values = new FormData(form); const body: Record<string, string | number | undefined> = {};

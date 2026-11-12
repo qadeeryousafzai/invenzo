@@ -15,7 +15,7 @@ export default async function InvoicesPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true, name: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const totalInvoiced = sales.reduce((sum, sale) => sum + Number(sale.total), 0);
   const money = (value: number) => `${currency} ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 

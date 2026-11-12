@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { canonicalKeyFor, manufacturerKeyFor } from "./dedupe";
 import { normalizeName } from "./normalize";
 import { getCatalogAdapter } from "./registry";
+import type { AdapterInput, CatalogAdapter } from "./types";
 import { countryName, getSourceDefinition } from "./sources";
 import type { NormalizedMedicine } from "./types";
 import { SourceNotLicensedError } from "./adapters/restricted";
@@ -74,7 +75,11 @@ export async function startCatalogImport(input: StartImportInput): Promise<Start
   return { jobId: job.id, sourceId: source.id, status: "QUEUED" };
 }
 
-export async function runCatalogImport(jobId: string, batchSize = 500): Promise<void> {
+export async function runCatalogImport(
+  jobId: string,
+  batchSize = 500,
+  override?: { adapter?: CatalogAdapter; prepareInput?: AdapterInput },
+): Promise<void> {
   const job = await prisma.medicineImportJob.findUnique({
     where: { id: jobId },
     include: { source: true },
@@ -85,7 +90,7 @@ export async function runCatalogImport(jobId: string, batchSize = 500): Promise<
   }
 
   const definition = getSourceDefinition(job.source.key);
-  const adapter = definition?.adapterKey ? getCatalogAdapter(definition.adapterKey) : null;
+  const adapter = override?.adapter ?? (definition?.adapterKey ? getCatalogAdapter(definition.adapterKey) : null);
   if (!adapter) throw new Error(`No adapter is registered for source "${job.source.key}".`);
 
   const workDir = path.join(os.tmpdir(), "invenzo-catalog", job.source.key, jobId);
@@ -153,17 +158,14 @@ export async function runCatalogImport(jobId: string, batchSize = 500): Promise<
   };
 
   try {
-    await adapter.prepare({
+    const prepareInput: AdapterInput = override?.prepareInput ?? {
       workDir,
       archivePath: null,
       datasetLabel: job.datasetLabel,
-    });
+    };
+    await adapter.prepare(prepareInput);
 
-    for await (const record of adapter.iterRecords({
-      workDir,
-      archivePath: null,
-      datasetLabel: job.datasetLabel,
-    })) {
+    for await (const record of adapter.iterRecords(prepareInput)) {
       if (processed < resumeOffset) {
         processed += 1;
         continue;
@@ -239,6 +241,61 @@ export async function runCatalogImport(jobId: string, batchSize = 500): Promise<
   }
 }
 
+/**
+ * Import a dataset that has already been extracted on disk (for example a
+ * downloaded Open Medication Catalog release). Runs to completion so callers
+ * such as the import CLI can report the final counters.
+ */
+export async function runLocalCatalogImport(input: {
+  sourceKey: string;
+  localDir: string;
+  datasetLabel?: string | null;
+  batchSize?: number;
+  createdById?: string | null;
+}): Promise<{ jobId: string; imported: number; duplicate: number; failed: number; processed: number }> {
+  const definition = getSourceDefinition(input.sourceKey);
+  if (!definition) throw new Error(`Unknown catalog source "${input.sourceKey}".`);
+  if (!definition.adapterKey) throw new Error(`The ${definition.name} source has no import adapter.`);
+  const adapter = getCatalogAdapter(definition.adapterKey);
+  if (!adapter) throw new Error(`No adapter is registered for source "${input.sourceKey}".`);
+
+  const source = await ensureSourceRow(definition.key);
+  const batchSize = clampBatchSize(input.batchSize ?? 500);
+  const job = await prisma.medicineImportJob.create({
+    data: {
+      sourceId: source.id,
+      status: "QUEUED",
+      datasetUrl: path.resolve(input.localDir),
+      datasetLabel: input.datasetLabel ?? definition.name,
+      createdById: input.createdById ?? null,
+    },
+    select: { id: true },
+  });
+
+  await runCatalogImport(job.id, batchSize, {
+    adapter,
+    prepareInput: {
+      workDir: path.resolve(input.localDir),
+      archivePath: null,
+      datasetLabel: input.datasetLabel ?? definition.name,
+      localDir: path.resolve(input.localDir),
+    },
+  });
+
+  const finished = await prisma.medicineImportJob.findUnique({
+    where: { id: job.id },
+    select: { processedRecords: true, importedRecords: true, duplicateRecords: true, failedRecords: true },
+  });
+
+  return {
+    jobId: job.id,
+    processed: finished?.processedRecords ?? 0,
+    imported: finished?.importedRecords ?? 0,
+    duplicate: finished?.duplicateRecords ?? 0,
+    failed: finished?.failedRecords ?? 0,
+  };
+}
+
 /** Placeholder for a future cooperative stop flag (set by cancel endpoints). */
 function adapterShouldStop(): boolean {
   return false;
@@ -255,7 +312,7 @@ function clampBatchSize(value: number): number {
   return Math.min(Math.max(Math.trunc(value), 50), 5000);
 }
 
-async function ensureSourceRow(key: string) {
+export async function ensureSourceRow(key: string) {
   const definition = getSourceDefinition(key);
   if (!definition) throw new Error(`Unknown catalog source "${key}".`);
 

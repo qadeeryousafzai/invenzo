@@ -19,7 +19,7 @@ export default async function IncomePage() {
         <h1 className="mt-2 flex items-center gap-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#f1fce0] text-[#16a34a]"><Wallet className="h-5 w-5" /></span>Income</h1>
         <p className="mt-2 text-sm text-slate-500">Record revenue from services and other income sources and keep your finance records complete.</p>
       </div>
-      <IncomeManager rows={rows.map((row) => ({ ...row, amount: row.amount.toString(), date: row.date.toISOString(), createdAt: row.createdAt.toISOString() }))} canManage={context.permissions.has("finance.view")} currency={business?.currency ?? "USD"} />
+      <IncomeManager rows={rows.map((row) => ({ ...row, amount: row.amount.toString(), date: row.date.toISOString(), createdAt: row.createdAt.toISOString() }))} canManage={context.permissions.has("finance.view")} currency={business?.currency ?? "PKR"} />
     </div>
   );
 }

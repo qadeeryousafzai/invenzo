@@ -35,7 +35,7 @@ export function PosBilling() {
   const [lastSale, setLastSale] = useState<{ reference: string; total: number; items: CartItem[]; customerName: string | null } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [nearExpiry, setNearExpiry] = useState<Array<{ name: string; batch: string; remaining: number; expiry: string }>>([]);
-  const currency = businesses.find((b) => b.id === selectedBusinessId)?.currency ?? "USD";
+  const currency = businesses.find((b) => b.id === selectedBusinessId)?.currency ?? "PKR";
 
   useEffect(() => {
     let cancelled = false;

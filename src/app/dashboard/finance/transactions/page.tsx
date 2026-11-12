@@ -18,7 +18,7 @@ export default async function FinanceTransactionsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const ledger: LedgerRow[] = [
     ...incomes.map((row) => ({ id: `income-${row.id}`, type: "INCOME" as const, reference: row.reference ?? row.title, contact: row.category, date: row.date.toISOString(), amount: Number(row.amount) })),
     ...expenses.map((row) => ({ id: `expense-${row.id}`, type: "EXPENSE" as const, reference: row.title, contact: row.category, date: row.incurredAt.toISOString(), amount: Number(row.amount) })),

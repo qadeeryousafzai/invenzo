@@ -10,11 +10,12 @@ import { toast } from "sonner";
 
 type Branch = { id: string; name: string };
 type Customer = { id: string; name: string; phone: string | null };
-type Item = { id: string; productId: string; name: string; sku: string; barcode: string; brand: string; category: string; unit: string; strength: string; imageUrl: string; branchId: string; branchName: string; price: number; availableStock: number };
-type CartLine = { listingId: string; name: string; sku: string; unit: string; strength: string; price: number; quantity: number; max: number };
+type Item = { id: string; productId: string; name: string; sku: string; barcode: string; brand: string; category: string; unit: string; strength: string; imageUrl: string; branchId: string; branchName: string; price: number; availableStock: number; packSize: number; packUnit: string | null };
+type CartLine = { listingId: string; name: string; sku: string; unit: string; strength: string; price: number; quantity: number; max: number; packSize: number; packUnit: string | null; sellUnit: "unit" | "pack" };
+type ReceiptItem = { name: string; quantity: number; unitPrice: number; lineTotal: number; unitLabel?: string };
 type PaymentMethod = "cash" | "card" | "other";
 type HeldOrder = { id: string; label: string; branchId: string; customerId: string; cart: CartLine[]; discount: string; taxRate: string; notes: string; paymentMethod: PaymentMethod; amountTendered: string };
-type Receipt = { reference: string; total: number; subtotal: number; discount: number; tax: number; paymentMethod: PaymentMethod; amountTendered: number; change: number; items: { name: string; quantity: number; unitPrice: number; lineTotal: number }[]; customer: string; branch: string; soldAt: string };
+type Receipt = { reference: string; total: number; subtotal: number; discount: number; tax: number; paymentMethod: PaymentMethod; amountTendered: number; change: number; items: ReceiptItem[]; customer: string; branch: string; soldAt: string };
 
 export function PosClient({ branches, customers: initialCustomers, catalog, categories, currency, business, canCreateCustomer }: {
   branches: Branch[]; customers: Customer[]; catalog: Item[]; categories: string[]; currency: string; business: { name: string; address: string; phone: string }; canCreateCustomer: boolean;
@@ -36,6 +37,7 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
   const [heldOrders, setHeldOrders] = useState<HeldOrder[]>([]);
   const barcodeRef = useRef<HTMLInputElement>(null);
 
+  const currencyCode = (currency || "PKR").toUpperCase();
   const branchItems = useMemo(() => catalog.filter((item) => item.branchId === branchId), [catalog, branchId]);
   const categoryOptions = useMemo(() => ["All", ...Array.from(new Set(categories.filter(Boolean))).sort()], [categories]);
   const filtered = useMemo(() => {
@@ -47,14 +49,17 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
     });
   }, [branchItems, query, category]);
 
-  const subtotal = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
+  const unitsPerLine = (line: CartLine) => (line.sellUnit === "pack" ? line.quantity * line.packSize : line.quantity);
+  const maxQtyFor = (line: CartLine) => Math.max(1, Math.floor(line.max / (line.sellUnit === "pack" ? line.packSize : 1)));
+  const subtotal = cart.reduce((sum, line) => sum + line.price * unitsPerLine(line), 0);
   const discountAmount = Math.max(0, Math.min(subtotal, Number(discount) || 0));
   const taxable = Math.max(0, subtotal - discountAmount);
   const taxAmount = taxable * (Math.max(0, Number(taxRate) || 0) / 100);
   const total = taxable + taxAmount;
   const tendered = paymentMethod === "cash" ? Math.max(0, Number(amountTendered) || 0) : total;
   const change = paymentMethod === "cash" ? Math.max(0, tendered - total) : 0;
-  const money = (n: number) => `${currency} ${n.toFixed(2)}`;
+  const currencySymbol = currencyCode === "PKR" ? "Rs" : currencyCode;
+  const money = (n: number) => `${currencySymbol} ${n.toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   function add(item: Item) {
     if (!branchId) { toast.error("Select a branch first."); return; }
@@ -65,17 +70,27 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
         if (existing.quantity >= item.availableStock) { toast.error("Cannot exceed available stock."); return prev; }
         return prev.map((l) => l.listingId === item.id ? { ...l, quantity: Math.min(item.availableStock, l.quantity + 1) } : l);
       }
-      return [...prev, { listingId: item.id, name: item.name, sku: item.sku, unit: item.unit, strength: item.strength, price: item.price, quantity: 1, max: item.availableStock }];
+      const packSize = item.packSize > 1 ? item.packSize : 1;
+      return [...prev, {
+        listingId: item.id, name: item.name, sku: item.sku, unit: item.unit, strength: item.strength,
+        price: item.price, quantity: 1, max: item.availableStock, packSize,
+        packUnit: item.packUnit, sellUnit: packSize > 1 ? "pack" : "unit",
+      }];
     });
   }
 
   function qty(listingId: string, next: number) {
     setCart((prev) => prev.map((l) => {
       if (l.listingId !== listingId) return l;
-      const value = Math.max(1, Math.min(l.max, Math.floor(next) || 1));
-      if (next > l.max) toast.error("Cannot exceed available stock.");
+      const limit = maxQtyFor(l);
+      const value = Math.max(1, Math.min(limit, Math.floor(next) || 1));
+      if (next > limit) toast.error("Cannot exceed available stock.");
       return { ...l, quantity: value };
     }));
+  }
+
+  function setSellUnit(listingId: string, sellUnit: "unit" | "pack") {
+    setCart((prev) => prev.map((l) => (l.listingId === listingId ? { ...l, sellUnit, quantity: 1 } : l)));
   }
 
   function onBarcodeSearch() {
@@ -118,10 +133,10 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
     setCart([]); setDiscount("0"); setTaxRate("0"); setNotes(""); setAmountTendered("");
   }
 
-  async function completeSale() {
+  async function completeSale(options: { print?: boolean } = {}) {
     if (!branchId) { toast.error("Select a branch."); return; }
     if (!cart.length) { toast.error("Add at least one medicine."); return; }
-    if (cart.some((l) => l.quantity > l.max || l.quantity <= 0)) { toast.error("Fix quantities before completing the sale."); return; }
+    if (cart.some((l) => unitsPerLine(l) > l.max || l.quantity <= 0)) { toast.error("Fix quantities before completing the sale."); return; }
     if (discountAmount > subtotal) { toast.error("Discount cannot exceed subtotal."); return; }
     if (paymentMethod === "cash" && tendered < total) { toast.error("Cash received must be at least the grand total."); return; }
 
@@ -138,31 +153,40 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
           tax: Number(taxAmount.toFixed(2)),
           paymentMethod,
           amountTendered: Number(tendered.toFixed(2)),
-          items: cart.map((l) => ({ productListingId: l.listingId, quantity: l.quantity })),
+          items: cart.map((l) => ({ productListingId: l.listingId, quantity: unitsPerLine(l) })),
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(payload.error ?? "Sale could not be completed.");
       const customerName = customers.find((c) => c.id === customerId)?.name ?? "Walk-in customer";
       const branchName = branches.find((b) => b.id === branchId)?.name ?? "Branch";
-      setReceipt({
+      const soldReceipt: Receipt = {
         reference: payload.data.reference,
         subtotal, discount: discountAmount, tax: taxAmount, total,
         paymentMethod, amountTendered: tendered, change,
-        items: cart.map((l) => ({ name: l.name, quantity: l.quantity, unitPrice: l.price, lineTotal: l.price * l.quantity })),
+        items: cart.map((l) => ({
+          name: l.name,
+          quantity: unitsPerLine(l),
+          unitPrice: l.price,
+          lineTotal: l.price * unitsPerLine(l),
+          unitLabel: l.sellUnit === "pack" ? `${l.packUnit ?? "Pack"} ×${l.packSize}` : l.unit,
+        })),
         customer: customerName, branch: branchName, soldAt: payload.data.soldAt ?? new Date().toISOString(),
-      });
+      };
+      setReceipt(soldReceipt);
       clearCart(); setCustomerId("");
       toast.success(`Sale ${payload.data.reference} completed.`);
+      if (options.print) printReceipt(soldReceipt);
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Sale could not be completed.");
     } finally { setBusy(false); }
   }
 
-  function printReceipt() {
-    if (!receipt) return;
-    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt ${receipt.reference}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827;max-width:720px;margin:0 auto}h1{margin:0 0 4px;font-size:22px}.muted{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:10px 6px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}th{color:#475569;font-weight:600}.right{text-align:right}.totals{margin-top:18px;max-width:320px;margin-left:auto;font-size:14px}.row{display:flex;justify-content:space-between;padding:4px 0}.total{font-weight:700;font-size:16px;border-top:1px solid #e5e7eb;margin-top:8px;padding-top:10px}</style></head><body><h1>${escapeHtml(business.name)}</h1><div class="muted">${escapeHtml(business.address || "")}</div><div class="muted">${escapeHtml(business.phone || "")}</div><hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/><div><strong>Receipt:</strong> ${escapeHtml(receipt.reference)}</div><div><strong>Date:</strong> ${new Date(receipt.soldAt).toLocaleString()}</div><div><strong>Branch:</strong> ${escapeHtml(receipt.branch)}</div><div><strong>Customer:</strong> ${escapeHtml(receipt.customer)}</div><div><strong>Payment:</strong> ${receipt.paymentMethod.toUpperCase()}</div><table><thead><tr><th>Medicine</th><th class="right">Qty</th><th class="right">Price</th><th class="right">Total</th></tr></thead><tbody>${receipt.items.map((i) => `<tr><td>${escapeHtml(i.name)}</td><td class="right">${i.quantity}</td><td class="right">${money(i.unitPrice)}</td><td class="right">${money(i.lineTotal)}</td></tr>`).join("")}</tbody></table><div class="totals"><div class="row"><span>Subtotal</span><span>${money(receipt.subtotal)}</span></div><div class="row"><span>Discount</span><span>-${money(receipt.discount)}</span></div><div class="row"><span>Tax</span><span>${money(receipt.tax)}</span></div><div class="row total"><span>Grand Total</span><span>${money(receipt.total)}</span></div>${receipt.paymentMethod === "cash" ? `<div class="row"><span>Cash received</span><span>${money(receipt.amountTendered)}</span></div><div class="row"><span>Change</span><span>${money(receipt.change)}</span></div>` : ""}</div><script>window.onload=()=>window.print()</script></body></html>`;
+  function printReceipt(target?: Receipt) {
+    if (!target && !receipt) { toast.error("Complete a sale before printing a receipt."); return; }
+    const sold: Receipt = target ?? (receipt as Receipt);
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt ${sold.reference}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827;max-width:720px;margin:0 auto}h1{margin:0 0 4px;font-size:22px}.muted{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:10px 6px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}th{color:#475569;font-weight:600}.right{text-align:right}.totals{margin-top:18px;max-width:320px;margin-left:auto;font-size:14px}.row{display:flex;justify-content:space-between;padding:4px 0}.total{font-weight:700;font-size:16px;border-top:1px solid #e5e7eb;margin-top:8px;padding-top:10px}</style></head><body><h1>${escapeHtml(business.name)}</h1><div class="muted">${escapeHtml(business.address || "")}</div><div class="muted">${escapeHtml(business.phone || "")}</div><hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/><div><strong>Receipt:</strong> ${escapeHtml(sold.reference)}</div><div><strong>Date:</strong> ${new Date(sold.soldAt).toLocaleString()}</div><div><strong>Branch:</strong> ${escapeHtml(sold.branch)}</div><div><strong>Customer:</strong> ${escapeHtml(sold.customer)}</div><div><strong>Payment:</strong> ${sold.paymentMethod.toUpperCase()}</div><table><thead><tr><th>Medicine</th><th class="right">Qty</th><th class="right">Price</th><th class="right">Total</th></tr></thead><tbody>${sold.items.map((i) => `<tr><td>${escapeHtml(i.name)}</td><td class="right">${i.quantity}</td><td class="right">${money(i.unitPrice)}</td><td class="right">${money(i.lineTotal)}</td></tr>`).join("")}</tbody></table><div class="totals"><div class="row"><span>Subtotal</span><span>${money(sold.subtotal)}</span></div><div class="row"><span>Discount</span><span>-${money(sold.discount)}</span></div><div class="row"><span>Tax</span><span>${money(sold.tax)}</span></div><div class="row total"><span>Grand Total</span><span>${money(sold.total)}</span></div>${sold.paymentMethod === "cash" ? `<div class="row"><span>Cash received</span><span>${money(sold.amountTendered)}</span></div><div class="row"><span>Change</span><span>${money(sold.change)}</span></div>` : ""}</div><script>window.onload=()=>window.print()</script></body></html>`;
     const win = window.open("", "_blank", "width=760,height=900");
     if (!win) { toast.error("Allow pop-ups to print receipts."); return; }
     win.document.write(html); win.document.close();
@@ -275,19 +299,33 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-900">{line.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{line.strength || line.sku} · {money(line.price)} / {line.unit}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {line.strength || line.sku} · {money(line.price)} / {line.unit}
+                    {line.packSize > 1 ? ` · ${line.packUnit ?? "Pack"} of ${line.packSize}` : ""}
+                  </p>
                 </div>
                 <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-red-600" onClick={() => setCart((p) => p.filter((x) => x.listingId !== line.listingId))} aria-label="Remove item"><X className="h-4 w-4" /></button>
               </div>
               <div className="mt-3 flex items-center justify-between gap-2">
-                <div className="inline-flex items-center rounded-xl border border-[#e5e7eb] bg-white">
-                  <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity - 1)} aria-label="Decrease"><Minus className="h-4 w-4" /></button>
-                  <input className="w-12 border-x border-[#e5e7eb] py-1.5 text-center text-sm font-medium text-slate-900 outline-none" value={line.quantity} onChange={(e) => qty(line.listingId, Number(e.target.value))} inputMode="numeric" />
-                  <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity + 1)} aria-label="Increase"><Plus className="h-4 w-4" /></button>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center rounded-xl border border-[#e5e7eb] bg-white">
+                    <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity - 1)} aria-label="Decrease"><Minus className="h-4 w-4" /></button>
+                    <input className="w-12 border-x border-[#e5e7eb] py-1.5 text-center text-sm font-medium text-slate-900 outline-none" value={line.quantity} onChange={(e) => qty(line.listingId, Number(e.target.value))} inputMode="numeric" />
+                    <button type="button" className="p-2 text-slate-600 hover:text-slate-900" onClick={() => qty(line.listingId, line.quantity + 1)} aria-label="Increase"><Plus className="h-4 w-4" /></button>
+                  </div>
+                  {line.packSize > 1 && (
+                    <div className="inline-flex overflow-hidden rounded-xl border border-[#e5e7eb] bg-white text-[11px] font-semibold">
+                      <button type="button" onClick={() => setSellUnit(line.listingId, "unit")} className={`px-2 py-1.5 ${line.sellUnit === "unit" ? "bg-[#16a34a] text-white" : "text-slate-600"}`}>{line.unit}</button>
+                      <button type="button" onClick={() => setSellUnit(line.listingId, "pack")} className={`px-2 py-1.5 ${line.sellUnit === "pack" ? "bg-[#16a34a] text-white" : "text-slate-600"}`}>{line.packUnit ?? "Pack"}</button>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-slate-900">{money(line.price * line.quantity)}</p>
-                  <p className="text-[11px] text-slate-500">max {line.max}</p>
+                  <p className="text-sm font-semibold text-slate-900">{money(line.price * unitsPerLine(line))}</p>
+                  <p className="text-[11px] text-slate-500">
+                    max {line.sellUnit === "pack" ? `${maxQtyFor(line)} ${line.packUnit ?? "pack"}` : `${line.max} ${line.unit}`}
+                    {line.sellUnit === "pack" ? ` · ${unitsPerLine(line)} ${line.unit}` : ""}
+                  </p>
                 </div>
               </div>
             </div>
@@ -336,14 +374,19 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
             <button type="button" className="button-secondary gap-2" onClick={hold} disabled={!cart.length || busy}><PauseCircle className="h-4 w-4" /> Hold order</button>
             <button type="button" className="button-secondary gap-2" onClick={clearCart} disabled={busy || !cart.length}><Trash2 className="h-4 w-4" /> Clear cart</button>
           </div>
-          <button type="button" className="button-primary w-full !py-3 text-base" onClick={completeSale} disabled={busy || !cart.length || !branchId}>
-            {busy ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />} Complete payment
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button type="button" className="button-secondary !py-3 gap-2 text-sm" onClick={() => void completeSale()} disabled={busy || !cart.length || !branchId}>
+              {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Complete payment
+            </button>
+            <button type="button" className="button-primary !py-3 gap-2 text-sm" onClick={() => void completeSale({ print: true })} disabled={busy || !cart.length || !branchId}>
+              {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />} Complete payment and print
+            </button>
+          </div>
           {receipt && (
             <div className="rounded-xl border border-[#bbf7d0] bg-[#f7fde8] p-3">
               <p className="text-sm font-semibold text-[#14532d]">Sale completed · {receipt.reference}</p>
               <p className="mt-1 text-xs text-slate-600">{receipt.paymentMethod.toUpperCase()} · {money(receipt.total)}{receipt.paymentMethod === "cash" ? ` · Change ${money(receipt.change)}` : ""}</p>
-              <button type="button" className="button-secondary mt-3 w-full gap-2" onClick={printReceipt}><Printer className="h-4 w-4" /> Print receipt</button>
+              <button type="button" className="button-secondary mt-3 w-full gap-2" onClick={() => printReceipt()}><Printer className="h-4 w-4" /> Print receipt</button>
             </div>
           )}
         </div>

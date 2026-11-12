@@ -46,7 +46,7 @@ export default async function AppointmentsPage() {
       <section className="surface-card p-5 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-[#e8eee8] bg-[#ffffff] p-4">
-            <p className="text-xs text-[#77847d]">Today's appointments</p>
+            <p className="text-xs text-[#77847d]">Today&apos;s appointments</p>
             <p className="mt-2 text-2xl font-semibold text-[#17231f]">{todayCount}</p>
           </div>
           <div className="rounded-xl border border-[#e8eee8] bg-[#ffffff] p-4">

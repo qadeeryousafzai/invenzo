@@ -18,7 +18,7 @@ export default async function PosPage() {
     prisma.productListing.findMany({
       where: { businessId, product: { deletedAt: null } },
       include: {
-        product: { select: { id: true, name: true, sku: true, barcode: true, brand: true, category: true, unit: true, imageUrl: true, description: true, categoryRef: { select: { name: true } } } },
+        product: { select: { id: true, name: true, sku: true, barcode: true, brand: true, category: true, unit: true, packSize: true, packUnit: true, imageUrl: true, description: true, categoryRef: { select: { name: true } } } },
         branch: { select: { id: true, name: true } },
         batches: {
           where: { archivedAt: null, quantityRemaining: { gt: 0 }, OR: [{ expiryDate: null }, { expiryDate: { gt: now } }] },
@@ -47,6 +47,8 @@ export default async function PosPage() {
     branchName: row.branch.name,
     price: Number(row.price),
     availableStock: Number(row.batches.reduce((sum, b) => sum + b.quantityRemaining.toNumber(), 0).toFixed(3)),
+    packSize: row.product.packSize > 1 ? row.product.packSize : 1,
+    packUnit: row.product.packUnit ?? null,
   }));
 
   return (
@@ -69,7 +71,7 @@ export default async function PosPage() {
         customers={customers}
         catalog={catalog}
         categories={categories.map((c) => c.name)}
-        currency={business?.currency ?? context.membership.business.currency ?? "USD"}
+        currency={business?.currency ?? context.membership.business.currency ?? "PKR"}
         business={{ name: business?.name ?? context.membership.business.name, address: business?.address ?? "", phone: business?.phone ?? "" }}
         canCreateCustomer={context.permissions.has("customers.manage")}
       />

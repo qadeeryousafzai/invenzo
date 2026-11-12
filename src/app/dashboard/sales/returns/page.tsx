@@ -14,7 +14,7 @@ export default async function SalesReturnsPage() {
     prisma.business.findUnique({ where: { id: context.businessId }, select: { currency: true } }),
   ]);
 
-  const currency = business?.currency ?? "USD";
+  const currency = business?.currency ?? "PKR";
   const money = (value: number) => `${currency} ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (

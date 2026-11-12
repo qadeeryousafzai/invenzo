@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   }
 
   const businessId = context.businessId;
-  const currency = context.membership.business.currency || "USD";
+  const currency = context.membership.business.currency || "PKR";
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

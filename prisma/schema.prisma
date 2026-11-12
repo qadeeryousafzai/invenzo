@@ -292,6 +292,14 @@ model Product {
   description       String?          @db.Text
   imageUrl          String?          @db.Text
   unit              String           @default("unit") @db.VarChar(32)
+  /**
+   * Base units contained in one sellable pack (e.g. 10 tablets per box). 1 = sold as single units.
+   */
+  packSize          Int              @default(1)
+  /**
+   * Pack label shown in the POS, e.g. "Box" or "Strip".
+   */
+  packUnit          String?          @db.VarChar(32)
   catalogMedicineId String?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt

@@ -6,7 +6,7 @@ import { LoaderCircle, Save } from "lucide-react";
 import { toast } from "sonner";
 
 type BusinessProfile = { name: string; description: string | null; email: string | null; phone: string | null; address: string | null; taxId: string | null; website: string | null; currency: string; timezone: string; accountStatus: string; type: string };
-const currencies = ["USD", "EUR", "GBP", "PKR", "INR", "CAD", "AUD", "AED", "JPY", "CHF"];
+const currencies = ["PKR", "USD", "EUR", "GBP", "INR", "CAD", "AUD", "AED", "JPY", "CHF"];
 const timezones = ["UTC", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "Europe/London", "Europe/Paris", "Asia/Karachi", "Asia/Kolkata", "Asia/Dubai", "Asia/Tokyo", "Australia/Sydney"];
 
 export function BusinessProfileForm({ business, canManage }: { business: BusinessProfile; canManage: boolean }) {

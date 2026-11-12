@@ -44,3 +44,6 @@ next-env.d.ts
 
 *.next.config.*
 next.config.compiled.js
+
+# Downloaded/extracted catalog datasets (regenerate with scripts/import-catalog.ts)
+src/medicine/

@@ -18,6 +18,8 @@ const createSchema = z.object({
   description: z.string().trim().max(4000).optional(),
   imageUrl: imageUrlSchema.optional(),
   unit: z.string().trim().min(1).max(32).default("unit"),
+  packSize: z.number().int().min(1).max(100000).default(1),
+  packUnit: z.string().trim().max(32).optional(),
   branchId: z.string().min(1).max(191),
   price: z.number().positive().max(9999999999).refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 0.000001),
   initialQuantity: z.number().min(0).max(999999999).refine((value) => Math.abs(value * 1000 - Math.round(value * 1000)) < 0.000001).default(0),
@@ -96,6 +98,8 @@ export async function POST(request: Request) {
           description: data.description || null,
           imageUrl: data.imageUrl || null,
           unit: data.unit,
+          packSize: data.packSize,
+          packUnit: data.packUnit?.trim() || null,
           catalogMedicineId: data.catalogMedicineId ?? null,
         },
       });

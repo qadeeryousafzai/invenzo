@@ -20,7 +20,7 @@ const schema = z.object({
   bloodType: z.string().trim().max(10).optional(),
 });
 
-export async function registerPatient(prevState: any, formData: FormData) {
+export async function registerPatient(_prevState: { error?: string; details?: Record<string, string[]> } | null, formData: FormData) {
   const context = await getTenantContext();
   if (!context?.businessId) return { error: "No business context" };
   const raw = Object.fromEntries(formData.entries());

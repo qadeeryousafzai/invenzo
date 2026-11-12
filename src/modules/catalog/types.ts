@@ -51,6 +51,8 @@ export type AdapterInput = {
   archivePath?: string | null;
   /** Dataset release label (e.g. "2026.11"). */
   datasetLabel?: string | null;
+  /** Pre-extracted dataset directory — skips download/extract when provided. */
+  localDir?: string | null;
 };
 
 export type ProgressUpdate = {

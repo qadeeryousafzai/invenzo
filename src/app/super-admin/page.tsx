@@ -89,6 +89,8 @@ function StatCard({ label, value, change, icon: Icon, tint, trend }: { label: st
   );
 }
 
+const TODAY = Date.now();
+
 export default async function SuperAdminPage({ searchParams }: PageProps<"/super-admin">) {
   await connection();
   let admin;
@@ -124,6 +126,8 @@ export default async function SuperAdminPage({ searchParams }: PageProps<"/super
   else if (requestedStatus) clauses.push({ accountStatus: requestedStatus as "PENDING_APPROVAL" | "ACTIVE" | "SUSPENDED" | "TEMPORARILY_BLOCKED" | "EXPIRED" | "REJECTED" | "DELETED" });
   const where: Prisma.BusinessWhereInput = clauses.length ? { AND: clauses } : {};
 
+  const thirtyDaysAgo = new Date(TODAY - 30 * 24 * 60 * 60 * 1000);
+  const inThirtyDays = new Date(TODAY + 30 * 24 * 60 * 60 * 1000);
   const [total, activeCount, pendingCount, suspendedCount, blockedCount, expiredCount, rejectedCount, deletedCount, count, settings, users, statusBreakdown, monthlyRegistrations, expiryData] = await Promise.all([
     prisma.business.count(),
     prisma.business.count({ where: { deletedAt: null, subscriptionExpiresAt: { gt: now }, OR: [{ accountStatus: "ACTIVE" }, { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } }] } }),
@@ -140,10 +144,10 @@ export default async function SuperAdminPage({ searchParams }: PageProps<"/super
     prisma.business.groupBy({
       by: ["createdAt"],
       _count: true,
-      where: { deletedAt: null, createdAt: { gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) } },
+      where: { deletedAt: null, createdAt: { gte: thirtyDaysAgo } },
     }),
     prisma.business.findMany({
-      where: { deletedAt: null, subscriptionExpiresAt: { lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } },
+      where: { deletedAt: null, subscriptionExpiresAt: { lte: inThirtyDays } },
       select: { id: true, name: true, subscriptionExpiresAt: true, accountStatus: true },
       orderBy: { subscriptionExpiresAt: "asc" },
       take: 10,
