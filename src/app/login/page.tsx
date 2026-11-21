@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { SignInForm } from "@/components/auth/sign-in-form";
-import { LogoMark } from "@/components/logo";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +18,7 @@ export default async function LoginPage() {
       <section className="relative hidden overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-primary/60 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-36 -top-32 size-136 rounded-full border border-white/10 bg-[radial-gradient(circle,#55c9a244_0%,transparent_70%)]" />
         <Link href="/" className="relative flex items-center gap-2.5">
-          <LogoMark size={28} />
+          <Image src="/logo/logo.png" alt="Invenzo" width={36} height={36} className="rounded-xl" />
           <span className="text-xl font-bold tracking-tight">invenzo<span className="text-primary-light">.</span></span>
         </Link>
         <div className="relative max-w-lg pb-10">
@@ -34,7 +34,7 @@ export default async function LoginPage() {
       <section className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-105">
           <Link href="/" className="mb-12 inline-flex items-center gap-2 text-sm font-bold text-foreground lg:hidden">
-            <LogoMark size={22} /> invenzo<span className="text-primary">.</span>
+            <Image src="/logo/logo.png" alt="Invenzo" width={28} height={28} className="rounded-lg" /> invenzo<span className="text-primary">.</span>
           </Link>
           <p className="text-xs font-bold tracking-[.16em] text-primary">WELCOME BACK</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Sign in to your workspace</h2>

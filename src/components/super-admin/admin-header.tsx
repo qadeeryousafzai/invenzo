@@ -52,7 +52,7 @@ export function AdminHeader({ name, onMenuClick }: { name: string; onMenuClick: 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search businesses, users..."
-              className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:bg-surface focus-visible:ring-primary/20"
+              className="clay-input h-10 rounded-xl pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/20"
             />
           </div>
 
@@ -90,7 +90,7 @@ export function AdminHeader({ name, onMenuClick }: { name: string; onMenuClick: 
       <div className="border-t border-line px-4 py-2 md:hidden">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search businesses, users..." className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm" />
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search businesses, users..." className="clay-input h-10 rounded-xl pl-9 text-sm" />
         </div>
       </div>
     </header>

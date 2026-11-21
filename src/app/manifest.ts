@@ -9,11 +9,12 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f6f9fc",
-    theme_color: "#176b87",
+    background_color: "#F0F5F9",
+    theme_color: "#0D9488",
     icons: [
-      { src: "/icon", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/invenzo-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/logo/logo.png", sizes: "2000x2000", type: "image/png", purpose: "any" },
+      { src: "/logo/pwa-icon.png", sizes: "2000x2000", type: "image/png", purpose: "any" },
+      { src: "/logo/Favicon.png", sizes: "2000x2000", type: "image/png", purpose: "maskable" },
     ],
   };
 }

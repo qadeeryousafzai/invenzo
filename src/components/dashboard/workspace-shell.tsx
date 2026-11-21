@@ -315,7 +315,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
             <div className="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
               <div className="relative hidden w-full max-w-md md:block">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:bg-surface focus-visible:ring-primary/20" />
+                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="clay-input h-10 rounded-xl pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/20" />
               </div>
 
               <Link href="/dashboard/notifications" className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface text-muted-foreground transition hover:bg-surface-hover hover:text-foreground" aria-label="Notifications">
@@ -351,7 +351,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
           <div className="border-t border-line px-4 py-2 md:hidden">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm" />
+              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="clay-input h-10 rounded-xl pl-9 text-sm" />
             </div>
           </div>
         </header>

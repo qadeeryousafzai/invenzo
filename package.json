@@ -10,7 +10,7 @@
     "clean:next-config": "node scripts/clean-next-config-artifacts.mjs",
     "build": "prisma generate && next build --webpack",
     "start": "next start --hostname 0.0.0.0",
-    "hostinger:build": "npm run clean:next-config && npm run build",
+    "hostinger:build": "pnpm run clean:next-config && pnpm run build",
     "lint": "eslint",
     "test": "node --import tsx --test tests/unit/*.test.mjs",
     "test:integration": "node --import tsx --test tests/integration/*.test.mjs",

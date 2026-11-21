@@ -1,4 +1,4 @@
 git status
 git add .
-git commit -m "Update UI OF ADMIN PANEL"
+git commit -m "Update UI OF whole website"
 git push origin main

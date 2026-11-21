@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Pill, ShieldCheck, Users, TrendingUp, BarChart3, Truck, HeartPulse, ArrowRight, CheckCircle2, Star, Zap, Globe2 } from "lucide-react";
+import { Pill, ShieldCheck, Users, TrendingUp, BarChart3, Truck, HeartPulse, ArrowRight, CheckCircle2, Star, Zap, Globe2, Image as ImageIcon } from "lucide-react";
 import { LogoMark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 
 export const metadata = {
   title: "Invenzo — Smart Pharmacy Inventory & POS",
@@ -114,7 +115,7 @@ export default function LandingPage() {
             </div>
             
             <div className="mb-8 flex items-center justify-center gap-3">
-              <LogoMark size={36} />
+              <Image src="/logo/logo.png" alt="Invenzo" width={48} height={48} className="rounded-xl" />
               <span className="text-3xl font-bold tracking-tight text-foreground">invenzo<span className="text-primary">.</span></span>
             </div>
 
@@ -284,7 +285,7 @@ export default function LandingPage() {
           <div className="grid gap-8 md:grid-cols-[1fr_repeat(3,auto)]">
             <div className="max-w-xs">
               <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
-                <LogoMark size={24} />invenzo<span className="-ml-2 text-primary">.</span>
+                <Image src="/logo/logo.png" alt="Invenzo" width={32} height={32} className="rounded-lg" />invenzo<span className="-ml-2 text-primary">.</span>
               </Link>
               <p className="mt-4 text-sm text-muted-foreground">
                 The operating system for modern pharmacies. Inventory, POS, analytics, and patient discovery in one platform.
