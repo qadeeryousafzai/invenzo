@@ -204,7 +204,7 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
         <div className="surface-card p-4 sm:p-5">
           <div className="grid gap-3 lg:grid-cols-[180px_1fr_auto_auto]">
             <label className="field-label !mt-0">Branch
-              <select className="input-control" value={branchId} onChange={(e) => { setBranchId(e.target.value); setCart([]); }}>
+              <select className="select-control" value={branchId} onChange={(e) => { setBranchId(e.target.value); setCart([]); }}>
                 <option value="" disabled>Choose branch</option>
                 {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
@@ -215,8 +215,8 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
                 <input ref={barcodeRef} className="input-control !pl-9" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onBarcodeSearch())} placeholder="Search by name, SKU, barcode, brand..." />
               </div>
             </label>
-            <div className="flex items-end"><button type="button" className="button-secondary h-[46px] w-full gap-2" onClick={onBarcodeSearch}><ScanBarcode className="h-4 w-4" /> Find</button></div>
-            <div className="flex items-end"><button type="button" className="button-secondary h-[46px] w-full gap-2 border-[#b7e532] bg-[#f7fde8] text-[#3f6212] hover:bg-[#ecfccb]" onClick={() => barcodeRef.current?.focus()} title="Focus search for barcode scanner input"><Barcode className="h-4 w-4" /> Scan</button></div>
+            <div className="flex items-end"><button type="button" className="button-primary h-[46px] w-full gap-2" onClick={onBarcodeSearch}><ScanBarcode className="h-4 w-4" /> Find</button></div>
+            <div className="flex items-end"><button type="button" className="button-secondary h-[46px] w-full gap-2" onClick={() => barcodeRef.current?.focus()} title="Focus search for barcode scanner input"><Barcode className="h-4 w-4" /> Scan</button></div>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {categoryOptions.map((c) => (
@@ -260,7 +260,7 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
                   <p className="text-lg font-semibold text-slate-900">{money(item.price)}</p>
                   <p className={`mt-1 text-xs font-medium ${item.availableStock <= 0 ? "text-red-600" : item.availableStock <= 10 ? "text-amber-700" : "text-[#16a34a]"}`}>{item.availableStock} available</p>
                 </div>
-                <button type="button" className="button-primary !px-4 !py-2 !text-xs" onClick={() => add(item)} disabled={item.availableStock <= 0 || !branchId}>Add to cart</button>
+                <button type="button" className="button-primary gap-2 px-3 py-2 text-xs" onClick={() => add(item)} disabled={item.availableStock <= 0 || !branchId}>Add to cart</button>
               </div>
             </article>
           ))}
@@ -284,12 +284,12 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
           </div>
           <div className="mt-4 flex gap-2">
             <label className="field-label !mt-0 flex-1">Customer
-              <select className="input-control" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+              <select className="select-control" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
                 <option value="">Walk-in customer</option>
                 {customers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ""}</option>)}
               </select>
             </label>
-            {canCreateCustomer && <button type="button" className="button-secondary mt-6 h-[46px] px-3" title="Add customer" onClick={createWalkInCustomer}><UserPlus className="h-4 w-4" /></button>}
+            {canCreateCustomer && <button type="button" className="button-ghost mt-6 h-[46px] px-3 gap-2" title="Add customer" onClick={createWalkInCustomer}><UserPlus className="h-4 w-4" /> Add customer</button>}
           </div>
         </div>
 
@@ -371,14 +371,14 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" className="button-secondary gap-2" onClick={hold} disabled={!cart.length || busy}><PauseCircle className="h-4 w-4" /> Hold order</button>
-            <button type="button" className="button-secondary gap-2" onClick={clearCart} disabled={busy || !cart.length}><Trash2 className="h-4 w-4" /> Clear cart</button>
+            <button type="button" className="button-ghost gap-2" onClick={hold} disabled={!cart.length || busy}><PauseCircle className="h-4 w-4" /> Hold order</button>
+            <button type="button" className="button-ghost gap-2 text-red-600 hover:bg-red-50" onClick={clearCart} disabled={busy || !cart.length}><Trash2 className="h-4 w-4" /> Clear cart</button>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <button type="button" className="button-secondary !py-3 gap-2 text-sm" onClick={() => void completeSale()} disabled={busy || !cart.length || !branchId}>
+            <button type="button" className="button-primary !py-3 gap-2 text-sm w-full sm:w-auto" onClick={() => void completeSale()} disabled={busy || !cart.length || !branchId}>
               {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Complete payment
             </button>
-            <button type="button" className="button-primary !py-3 gap-2 text-sm" onClick={() => void completeSale({ print: true })} disabled={busy || !cart.length || !branchId}>
+            <button type="button" className="button-secondary !py-3 gap-2 text-sm w-full sm:w-auto" onClick={() => void completeSale({ print: true })} disabled={busy || !cart.length || !branchId}>
               {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />} Complete payment and print
             </button>
           </div>
@@ -386,7 +386,7 @@ export function PosClient({ branches, customers: initialCustomers, catalog, cate
             <div className="rounded-xl border border-[#bbf7d0] bg-[#f7fde8] p-3">
               <p className="text-sm font-semibold text-[#14532d]">Sale completed · {receipt.reference}</p>
               <p className="mt-1 text-xs text-slate-600">{receipt.paymentMethod.toUpperCase()} · {money(receipt.total)}{receipt.paymentMethod === "cash" ? ` · Change ${money(receipt.change)}` : ""}</p>
-              <button type="button" className="button-secondary mt-3 w-full gap-2" onClick={() => printReceipt()}><Printer className="h-4 w-4" /> Print receipt</button>
+              <button type="button" className="button-primary mt-3 w-full gap-2" onClick={() => printReceipt()}><Printer className="h-4 w-4" /> Print receipt</button>
             </div>
           )}
         </div>

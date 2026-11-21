@@ -27,13 +27,14 @@ type StockAggregate = {
 export async function GET(request: Request) {
   if (!originIsAllowed(request)) return originError();
   try {
-    const context = await requireTenantContext("inventory.view");
-    const url = new URL(request.url);
-    const query = (url.searchParams.get("q") ?? "").trim();
-    const dosageForm = (url.searchParams.get("dosageForm") ?? "").trim();
-    const countryCode = (url.searchParams.get("country") ?? "").trim().toUpperCase();
-    const page = Math.max(Number(url.searchParams.get("page") ?? "1") || 1, 1);
-    const pageSize = Math.min(Math.max(Number(url.searchParams.get("pageSize") ?? "24") || 24, 1), 100);
+const context = await requireTenantContext("inventory.view");
+  const url = new URL(request.url);
+  const query = (url.searchParams.get("q") ?? "").trim();
+  const dosageForm = (url.searchParams.get("dosageForm") ?? "").trim();
+  const countryCode = (url.searchParams.get("country") ?? "").trim().toUpperCase();
+  const categoryId = (url.searchParams.get("categoryId") ?? "").trim();
+  const page = Math.max(Number(url.searchParams.get("page") ?? "1") || 1, 1);
+  const pageSize = Math.min(Math.max(Number(url.searchParams.get("pageSize") ?? "24") || 24, 1), 100);
 
     const now = new Date();
 
@@ -84,22 +85,23 @@ export async function GET(request: Request) {
       }
     }
 
-    const filters = [];
-    if (query) {
-      filters.push({
-        OR: [
-          { displayName: { contains: query } },
-          { genericName: { contains: query } },
-          { brandName: { contains: query } },
-          { searchText: { contains: query } },
-          { strengthText: { contains: query } },
-        ],
-      });
-    }
-    if (dosageForm) filters.push({ dosageForm: { contains: dosageForm } });
-    if (countryCode) filters.push({ countryCode });
+const filters = [];
+  if (query) {
+    filters.push({
+      OR: [
+        { displayName: { contains: query } },
+        { genericName: { contains: query } },
+        { brandName: { contains: query } },
+        { searchText: { contains: query } },
+        { strengthText: { contains: query } },
+      ],
+    });
+  }
+  if (dosageForm) filters.push({ dosageForm: { contains: dosageForm } });
+  if (countryCode) filters.push({ countryCode });
+  if (categoryId) filters.push({ categoryId });
 
-    const where = filters.length ? { AND: filters } : undefined;
+  const where = filters.length ? { AND: filters } : undefined;
 
     const [total, catalogRows] = await Promise.all([
       prisma.medicine.count({ where }),

@@ -7,6 +7,13 @@ import { MedicineIllustration } from "@/components/medicine/MedicineIllustration
 
 type Branch = { id: string; name: string };
 
+type MedicineCategory = {
+  id: string;
+  key: string;
+  name: string;
+  parentId: string | null;
+};
+
 type MedicineRow = {
   key: string;
   source: "catalog" | "product";
@@ -61,6 +68,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
   const [debounced, setDebounced] = useState("");
   const [country, setCountry] = useState("");
   const [dosageForm, setDosageForm] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<MedicineRow[]>([]);
@@ -71,6 +79,23 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
   const [dialog, setDialog] = useState<{ row: MedicineRow; mode: "stock" | "new" } | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ branchId: "", quantity: "", batchNumber: "", expiry: "", price: "", name: "", packSize: "1", packUnit: "" });
+
+  const [categories, setCategories] = useState<MedicineCategory[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/catalog/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data.categories ?? []);
+        }
+      } catch {
+        // Ignore category fetch errors
+      }
+    }
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,6 +113,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
       if (debounced) params.set("q", debounced);
       if (country) params.set("country", country);
       if (dosageForm) params.set("dosageForm", dosageForm);
+      if (categoryId) params.set("categoryId", categoryId);
       const response = await fetch(`/api/inventory/catalog-medicines?${params.toString()}`, { cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "The medicine list could not be loaded.");
@@ -99,7 +125,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
     } finally {
       setLoading(false);
     }
-  }, [page, debounced, country, dosageForm]);
+  }, [page, debounced, country, dosageForm, categoryId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -243,72 +269,92 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
         </article>
       </div>
 
-      <div className="surface-card flex flex-col gap-3 p-4 lg:flex-row lg:items-end">
-        <label className="flex-1 text-xs">
-          <span className="text-slate-500">Search all medicines</span>
-          <div className="relative mt-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Brand, generic name, strength or manufacturer"
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none focus:border-slate-400"
-            />
-            {query ? (
-              <button type="button" onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-                <X size={14} />
-              </button>
-            ) : null}
-          </div>
-        </label>
-        <label className="text-xs lg:w-36">
-          <span className="text-slate-500">Country</span>
-          <select
-            value={country}
-            onChange={(event) => {
-              setCountry(event.target.value);
-              setPage(1);
-            }}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
-          >
-            <option value="">Any</option>
-            {countries.map((code) => (
-              <option key={code} value={code}>
-                {code}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs lg:w-44">
-          <span className="text-slate-500">Dosage form</span>
-          <select
-            value={dosageForm}
-            onChange={(event) => {
-              setDosageForm(event.target.value);
-              setPage(1);
-            }}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
-          >
-            <option value="">Any</option>
-            {dosageForms.map((form) => (
-              <option key={form} value={form}>
-                {form}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs lg:w-40">
-          <span className="text-slate-500">Stock (this page)</span>
-          <select
-            value={stockFilter}
-            onChange={(event) => setStockFilter(event.target.value as StockFilter)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
-          >
-            <option value="all">All medicines</option>
-            <option value="in">In stock only</option>
-            <option value="out">Out of stock (0)</option>
-          </select>
-        </label>
+      <div className="surface-card p-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <label className="text-xs sm:col-span-2 lg:col-span-2">
+            <span className="text-slate-500">Search all medicines</span>
+            <div className="relative mt-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Brand, generic name, strength or manufacturer"
+                className="input-control !pl-9"
+              />
+              {query ? (
+                <button type="button" onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+                  <X size={14} />
+                </button>
+              ) : null}
+            </div>
+          </label>
+          <label className="text-xs">
+            <span className="text-slate-500">Category</span>
+            <select
+              value={categoryId}
+              onChange={(event) => {
+                setCategoryId(event.target.value);
+                setPage(1);
+              }}
+              className="select-control mt-1 w-full"
+            >
+              <option value="">All categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs">
+            <span className="text-slate-500">Country</span>
+            <select
+              value={country}
+              onChange={(event) => {
+                setCountry(event.target.value);
+                setPage(1);
+              }}
+              className="select-control mt-1 w-full"
+            >
+              <option value="">Any</option>
+              {countries.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs">
+            <span className="text-slate-500">Dosage form</span>
+            <select
+              value={dosageForm}
+              onChange={(event) => {
+                setDosageForm(event.target.value);
+                setPage(1);
+              }}
+              className="select-control mt-1 w-full"
+            >
+              <option value="">Any</option>
+              {dosageForms.map((form) => (
+                <option key={form} value={form}>
+                  {form}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs">
+            <span className="text-slate-500">Stock (this page)</span>
+            <select
+              value={stockFilter}
+              onChange={(event) => setStockFilter(event.target.value as StockFilter)}
+              className="select-control mt-1 w-full"
+            >
+              <option value="all">All medicines</option>
+              <option value="in">In stock only</option>
+              <option value="out">Out of stock (0)</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       {error ? <p className="surface-card p-4 text-sm text-rose-600">{error}</p> : null}
@@ -317,7 +363,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
         {loading ? "Loading…" : `${new Intl.NumberFormat("en-US").format(stats.total)} medicines · page ${meta.page} of ${meta.pageCount}`}
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {loading && items.length === 0
           ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="surface-card h-40 animate-pulse bg-slate-50" />)
           : visible.map((row) => {
@@ -444,7 +490,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   <input
                     value={form.name}
                     onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                    className="input-control mt-1 w-full"
                   />
                 </label>
               ) : null}
@@ -455,7 +501,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   <select
                     value={form.branchId}
                     onChange={(event) => setForm((prev) => ({ ...prev, branchId: event.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                    className="select-control mt-1 w-full"
                   >
                     {branches.map((branch) => (
                       <option key={branch.id} value={branch.id}>
@@ -474,7 +520,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   step="0.001"
                   value={form.quantity}
                   onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                  className="input-control mt-1 w-full"
                 />
               </label>
 
@@ -487,7 +533,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                     step="0.01"
                     value={form.price}
                     onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                    className="input-control mt-1 w-full"
                   />
                 </label>
               ) : null}
@@ -500,7 +546,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   step="1"
                   value={form.packSize}
                   onChange={(event) => setForm((prev) => ({ ...prev, packSize: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                  className="input-control mt-1 w-full"
                 />
               </label>
 
@@ -510,7 +556,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   value={form.packUnit}
                   onChange={(event) => setForm((prev) => ({ ...prev, packUnit: event.target.value }))}
                   placeholder="Box"
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                  className="input-control mt-1 w-full"
                 />
               </label>
 
@@ -520,7 +566,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   value={form.batchNumber}
                   onChange={(event) => setForm((prev) => ({ ...prev, batchNumber: event.target.value }))}
                   placeholder="Auto-generated if empty"
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                  className="input-control mt-1 w-full"
                 />
               </label>
 
@@ -530,7 +576,7 @@ export function CatalogBrowser({ branches }: { branches: Branch[] }) {
                   type="date"
                   value={form.expiry}
                   onChange={(event) => setForm((prev) => ({ ...prev, expiry: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm"
+                  className="input-control mt-1 w-full"
                 />
               </label>
             </div>
