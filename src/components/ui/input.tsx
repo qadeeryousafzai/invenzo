@@ -3,20 +3,62 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  hint?: string;
+  error?: string;
+  leadingIcon?: React.ReactNode;
+  trailingIcon?: React.ReactNode;
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, label, hint, error, leadingIcon, trailingIcon, id, ...props }, ref) => {
+    const inputId = id || React.useId();
+    const hintId = hint ? `${inputId}-hint` : undefined;
+    const errorId = error ? `${inputId}-error` : undefined;
+    const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+
     return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
+      <div className="w-full">
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-2">
+            {label}
+          </label>
         )}
-        ref={ref}
-        {...props}
-      />
+        <div className="relative">
+          {leadingIcon && (
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+              {leadingIcon}
+            </div>
+          )}
+          <input
+            type={type}
+            id={inputId}
+            className={cn(
+              "clay-input",
+              leadingIcon && "pl-12",
+              trailingIcon && "pr-12",
+              error && "border-danger focus:border-danger focus:ring-danger/20",
+              className
+            )}
+            ref={ref}
+            aria-describedby={describedBy}
+            aria-invalid={!!error}
+            {...props}
+          />
+          {trailingIcon && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+              {trailingIcon}
+            </div>
+          )}
+        </div>
+        {error && (
+          <p id={errorId} className="mt-2 text-sm text-danger" role="alert">{error}</p>
+        )}
+        {hint && !error && (
+          <p id={hintId} className="mt-2 text-sm text-muted-foreground">{hint}</p>
+        )}
+      </div>
     );
   }
 );

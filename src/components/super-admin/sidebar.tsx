@@ -17,6 +17,7 @@ import {
   LogOut,
   Globe2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type MenuItem = {
   href: string;
@@ -78,38 +79,38 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-[#17231f]/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-muted/50 backdrop-blur-sm lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#e8eee8] bg-[#ffffff] shadow-[2px_0_12px_rgba(0,61,50,0.03)] transition-all duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} w-[288px]`}
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-line bg-surface shadow-clay-elevated transition-all duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} w-[288px}`}
         role="navigation"
         aria-label="Super Admin navigation"
       >
-        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#e8eee8] px-4">
+        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line px-4">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#9be66b] text-[#003d32] ring-1 ring-[#d9f99d]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-light text-primary ring-1 ring-primary/20">
               <LayoutDashboard size={20} />
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-[#17231f]">Invenzo</span>
-              <span className="block truncate text-[11px] font-medium text-[#77847d]">SUPER ADMIN</span>
+              <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">Invenzo</span>
+              <span className="block truncate text-[11px] font-medium text-muted-foreground">SUPER ADMIN</span>
             </span>
           </div>
-          <button className="rounded-lg p-1.5 text-[#77847d] hover:bg-[#f1f7ee] lg:hidden" onClick={onClose} aria-label="Close menu">
+          <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-hover lg:hidden" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="mx-4 mt-5 rounded-xl bg-[#f1f7ee] p-3 border border-[#e8eee8]">
-          <p className="truncate text-sm font-semibold text-[#17231f] text-left">Platform Admin</p>
-          <p className="mt-1 truncate text-xs text-[#77847d] text-left">Platform Operations</p>
+        <div className="mx-4 mt-5 rounded-xl bg-surface-hover p-3 border border-line">
+          <p className="truncate text-sm font-semibold text-foreground text-left">Platform Admin</p>
+          <p className="mt-1 truncate text-xs text-muted-foreground text-left">Platform Operations</p>
         </div>
 
-        <p className="px-4 pb-2 pt-7 text-[10px] font-bold tracking-[.16em] text-[#77847d] text-left">MENU</p>
+        <p className="px-4 pb-2 pt-7 text-[10px] font-bold tracking-[.16em] text-muted-foreground text-left">MENU</p>
 
         <nav className="space-y-1 px-3 pb-6 overflow-y-auto flex-1">
           {ROOT_MENU.map((entry) => {
@@ -121,15 +122,15 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
                 <div key={entry.label} className="space-y-1">
                   <button
                     onClick={() => void toggleGroup(entry.label)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all ${isActive ? "bg-[#f1fce0] text-[#003d32]" : "text-[#77847d] hover:bg-[#f1f7ee] hover:text-[#17231f]"}`}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all ${isActive ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"}`}
                     aria-expanded={isOpenGroup}
                     aria-label={entry.label}
                   >
-                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", isActive ? "bg-[#f1fce0] text-[#003d32]" : "text-[#77847d]")}>
+                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", isActive ? "bg-primary-light text-primary" : "text-muted-foreground")}>
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
                     <span className="flex-1 truncate">{entry.label}</span>
-                    <ChevronDown className={cn("h-4 w-4 text-[#77847d] transition-transform duration-200", isOpenGroup && "rotate-180")} />
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", isOpenGroup && "rotate-180")} />
                   </button>
                   {isOpenGroup && (
                     <ul className="mt-1 space-y-0.5 pl-3">
@@ -142,13 +143,13 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
                               onClick={handleNavClick}
                               className={cn(
                                 "group flex items-center gap-2.5 rounded-xl border-l-2 px-3 py-2 text-[13px] font-medium transition-colors",
-                                active ? "border-[#003d32] bg-[#f1fce0] text-[#003d32]" : "border-transparent text-[#77847d] hover:border-[#e8eee8] hover:bg-[#f1f7ee] hover:text-[#17231f]"
+                                active ? "border-primary bg-primary-light text-primary" : "border-transparent text-muted-foreground hover:border-line hover:bg-surface-hover hover:text-foreground"
                               )}
                             >
-                              <span className="h-4 w-4 shrink-0 text-[#77847d] group-hover:text-[#17231f]" />
+                              <span className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
                               <span className="truncate">{item.label}</span>
                               {active && (
-                                <span className="ml-auto size-1.5 rounded-full bg-[#003d32]" aria-label="active" />
+                                <span className="ml-auto size-1.5 rounded-full bg-primary" aria-label="active" />
                               )}
                             </Link>
                           </li>
@@ -168,10 +169,10 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
                 onClick={handleNavClick}
                 className={cn(
                   "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                  active ? "bg-[#f1fce0] text-[#003d32] shadow-[inset_3px_0_0_#003d32]" : "text-[#77847d] hover:bg-[#f1f7ee] hover:text-[#17231f]"
+                  active ? "bg-primary-light text-primary shadow-[inset_3px_0_0_var(--primary)]" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 )}
               >
-                <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-white/70 text-[#003d32]" : "text-[#77847d] group-hover:text-[#17231f]")}>
+                <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-surface/70 text-primary" : "text-muted-foreground group-hover:text-foreground")}>
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
                 <span className="truncate">{entry.label}</span>
@@ -180,12 +181,12 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-[#e8eee8] bg-[#ffffff] p-3">
+        <div className="shrink-0 border-t border-line bg-surface p-3">
           <div className={cn("flex items-center gap-2")}>
             <button
               type="button"
               onClick={() => onClose()}
-              className={cn("inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:bg-[#f1f7ee] hover:text-[#17231f]", "flex-1 px-3")}
+              className={cn("inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm font-medium text-muted-foreground transition hover:bg-surface-hover hover:text-foreground", "flex-1 px-3")}
               aria-label="Collapse sidebar"
             >
               <PanelLeftOpen className="h-4 w-4" />
@@ -194,7 +195,7 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
             <button
               type="button"
               onClick={() => void signOut({ callbackUrl: "/" })}
-              className={cn("inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:border-#eb755e hover:bg-#fff0ec hover:text-[#eb755e]", "px-3")}
+              className={cn("inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm font-medium text-muted-foreground transition hover:border-destructive hover:bg-destructive/5 hover:text-destructive", "px-3")}
               aria-label="Logout"
             >
               <LogOut className="h-4 w-4" />
@@ -205,8 +206,4 @@ export function SuperAdminSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
       </aside>
     </>
   );
-}
-
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(" ");
 }

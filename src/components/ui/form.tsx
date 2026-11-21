@@ -5,6 +5,10 @@ import { Controller, ControllerProps, ControllerRenderProps, ControllerFieldStat
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 const Form = FormProvider;
 
@@ -74,6 +78,53 @@ const FormControl = React.forwardRef<HTMLInputElement, FormControlProps>(({ clas
 ));
 FormControl.displayName = "FormControl";
 
+type FormTextareaProps = React.ComponentPropsWithoutRef<typeof Textarea>;
+
+const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(({ className, ...props }, ref) => (
+  <Textarea ref={ref} className={cn("", className)} {...props} />
+));
+FormTextarea.displayName = "FormTextarea";
+
+interface FormSelectOption {
+  value: string;
+  label: string;
+}
+
+interface FormSelectProps extends React.ComponentPropsWithoutRef<typeof SelectTrigger> {
+  options?: FormSelectOption[];
+  placeholder?: string;
+}
+
+const FormSelect = React.forwardRef<HTMLButtonElement, FormSelectProps>(({ className, options, placeholder, ...props }, ref) => (
+  <Select>
+    <SelectTrigger ref={ref} className={cn("", className)} {...props}>
+      <SelectValue placeholder={placeholder} />
+    </SelectTrigger>
+    <SelectContent>
+      {options?.map((option) => (
+        <SelectItem key={option.value} value={option.value}>
+          {option.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+));
+FormSelect.displayName = "FormSelect";
+
+type FormCheckboxProps = React.ComponentPropsWithoutRef<typeof Checkbox>;
+
+const FormCheckbox = React.forwardRef<HTMLButtonElement, FormCheckboxProps>(({ className, ...props }, ref) => (
+  <Checkbox ref={ref} className={cn("", className)} {...props} />
+));
+FormCheckbox.displayName = "FormCheckbox";
+
+type FormSwitchProps = React.ComponentPropsWithoutRef<typeof Switch>;
+
+const FormSwitch = React.forwardRef<HTMLButtonElement, FormSwitchProps>(({ className, ...props }, ref) => (
+  <Switch ref={ref} className={cn("", className)} {...props} />
+));
+FormSwitch.displayName = "FormSwitch";
+
 type FormDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>;
 
 const FormDescription = React.forwardRef<HTMLParagraphElement, FormDescriptionProps>(
@@ -92,7 +143,7 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(
     const message = fieldState.error.message;
     if (!message) return null;
     return (
-      <p ref={ref} className={cn("text-sm text-destructive", className)} {...props}>
+      <p ref={ref} className={cn("text-sm text-danger", className)} {...props}>
         {children ? children : message}
       </p>
     )
@@ -106,6 +157,10 @@ export {
   FormItem,
   FormLabel,
   FormControl,
+  FormTextarea,
+  FormSelect,
+  FormCheckbox,
+  FormSwitch,
   FormDescription,
   FormMessage,
   useFormField,

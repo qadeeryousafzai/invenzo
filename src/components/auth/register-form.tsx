@@ -5,6 +5,12 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -34,30 +40,127 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="field-label">Your name<input className="input-control" name="ownerName" autoComplete="name" required minLength={2} maxLength={100} /></label>
-        <label className="field-label">Work email<input className="input-control" name="email" type="email" autoComplete="email" required /></label>
-        <label className="field-label">Business name<input className="input-control" name="businessName" required minLength={2} maxLength={191} /></label>
-        <label className="field-label">Business type<select className="input-control" name="businessType" defaultValue="GENERAL_RETAIL"><option value="GENERAL_RETAIL">General retail</option><option value="PHARMACY">Pharmacy / medical</option><option value="GROCERY">Grocery / supermarket</option><option value="ELECTRONICS">Electronics</option><option value="CLOTHING">Clothing</option><option value="WHOLESALE">Wholesale / distribution</option><option value="OTHER">Other</option></select></label>
-        <label className="field-label">First branch<input className="input-control" name="branchName" required minLength={2} maxLength={191} defaultValue="Main branch" /></label>
-        <label className="field-label">Branch code<input className="input-control uppercase" name="branchCode" required minLength={2} maxLength={32} defaultValue="MAIN" /></label>
-        <label className="field-label">Business phone <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="phone" type="tel" maxLength={40} /></label>
-        <label className="field-label sm:col-span-2">Business address <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="address" maxLength={1000} /></label>
-        <label className="field-label">Branch phone <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="branchPhone" type="tel" maxLength={40} /></label>
-        <label className="field-label">Branch address <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="branchAddress" maxLength={1000} /></label>
-        <label className="field-label sm:col-span-2">Business description <span className="font-normal text-slate-400">(optional)</span><textarea className="input-control min-h-20 resize-y" name="description" maxLength={2000} /></label>
-        <label className="field-label">Tax ID <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="taxId" maxLength={100} /></label>
-        <label className="field-label">Website <span className="font-normal text-slate-400">(optional)</span><input className="input-control" name="website" type="url" maxLength={255} placeholder="https://example.com" /></label>
-        <label className="field-label">Currency<select className="input-control" name="currency" defaultValue="PKR"><option value="PKR">PKR — Pakistani Rupee</option><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — Pound Sterling</option><option value="INR">INR — Indian Rupee</option><option value="CAD">CAD — Canadian Dollar</option><option value="AUD">AUD — Australian Dollar</option></select></label>
-        <label className="field-label">Timezone<select className="input-control" name="timezone" defaultValue="UTC"><option value="UTC">UTC</option><option value="America/New_York">Eastern Time</option><option value="America/Chicago">Central Time</option><option value="America/Denver">Mountain Time</option><option value="America/Los_Angeles">Pacific Time</option><option value="Europe/London">London</option><option value="Europe/Paris">Central Europe</option><option value="Asia/Karachi">Pakistan</option><option value="Asia/Kolkata">India</option><option value="Asia/Dubai">Gulf Standard Time</option><option value="Australia/Sydney">Sydney</option></select></label>
-        <label className="field-label">Password<input className="input-control" name="password" type="password" autoComplete="new-password" required minLength={12} maxLength={128} /><span className="field-hint">12+ characters, including uppercase, lowercase, and a number.</span></label>
-        <label className="field-label">Confirm password<input className="input-control" name="confirmPassword" type="password" autoComplete="new-password" required /></label>
-      </div>
-      {error && <p role="alert" className="alert-error">{error}</p>}
-      <p className="text-center text-xs leading-5 text-slate-500">Your request will be reviewed by the platform admin. One month of access starts after approval and offline payment confirmation.</p>
-      <button className="button-primary w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin" size={17} /> : <>Submit workspace for approval <ArrowRight size={17} /></>}</button>
-      <p className="text-center text-sm text-slate-500">Already registered? <Link href="/login" className="font-semibold text-emerald-800">Sign in</Link></p>
-    </form>
+    <Card className="w-full">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-2xl">Create your workspace</CardTitle>
+        <p className="mt-2 text-sm text-muted-foreground">Set up your business and first branch</p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="ownerName">Your name</Label>
+              <Input id="ownerName" name="ownerName" autoComplete="name" required minLength={2} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Work email</Label>
+              <Input id="email" name="email" type="email" autoComplete="email" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business name</Label>
+              <Input id="businessName" name="businessName" required minLength={2} maxLength={191} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="businessType">Business type</Label>
+              <Select name="businessType" defaultValue="GENERAL_RETAIL">
+                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GENERAL_RETAIL">General retail</SelectItem>
+                  <SelectItem value="PHARMACY">Pharmacy / medical</SelectItem>
+                  <SelectItem value="GROCERY">Grocery / supermarket</SelectItem>
+                  <SelectItem value="ELECTRONICS">Electronics</SelectItem>
+                  <SelectItem value="CLOTHING">Clothing</SelectItem>
+                  <SelectItem value="WHOLESALE">Wholesale / distribution</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="branchName">First branch</Label>
+              <Input id="branchName" name="branchName" required minLength={2} maxLength={191} defaultValue="Main branch" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="branchCode">Branch code</Label>
+              <Input id="branchCode" name="branchCode" className="uppercase" required minLength={2} maxLength={32} defaultValue="MAIN" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Business phone <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="phone" name="phone" type="tel" maxLength={40} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="address">Business address <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="address" name="address" maxLength={1000} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="branchPhone">Branch phone <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="branchPhone" name="branchPhone" type="tel" maxLength={40} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="branchAddress">Branch address <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="branchAddress" name="branchAddress" maxLength={1000} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="description">Business description <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Textarea id="description" name="description" className="min-h-20 resize-y" maxLength={2000} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="taxId">Tax ID <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="taxId" name="taxId" maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website">Website <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="website" name="website" type="url" maxLength={255} placeholder="https://example.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select name="currency" defaultValue="PKR">
+                <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PKR">PKR — Pakistani Rupee</SelectItem>
+                  <SelectItem value="USD">USD — US Dollar</SelectItem>
+                  <SelectItem value="EUR">EUR — Euro</SelectItem>
+                  <SelectItem value="GBP">GBP — Pound Sterling</SelectItem>
+                  <SelectItem value="INR">INR — Indian Rupee</SelectItem>
+                  <SelectItem value="CAD">CAD — Canadian Dollar</SelectItem>
+                  <SelectItem value="AUD">AUD — Australian Dollar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Select name="timezone" defaultValue="UTC">
+                <SelectTrigger><SelectValue placeholder="Select timezone" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                  <SelectItem value="Europe/London">London</SelectItem>
+                  <SelectItem value="Europe/Paris">Central Europe</SelectItem>
+                  <SelectItem value="Asia/Karachi">Pakistan</SelectItem>
+                  <SelectItem value="Asia/Kolkata">India</SelectItem>
+                  <SelectItem value="Asia/Dubai">Gulf Standard Time</SelectItem>
+                  <SelectItem value="Australia/Sydney">Sydney</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={12} maxLength={128} />
+              <p className="text-xs text-muted-foreground">12+ characters, including uppercase, lowercase, and a number.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" required />
+            </div>
+          </div>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <p className="text-center text-xs text-muted-foreground">Your request will be reviewed by the platform admin. One month of access starts after approval and offline payment confirmation.</p>
+          <Button className="w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin mr-2 h-4 w-4" /> : <>Submit workspace for approval <ArrowRight className="ml-2 h-4 w-4" /></>}</Button>
+          <p className="text-center text-sm text-muted-foreground">Already registered? <Link href="/login" className="font-medium text-primary hover:text-primary-hover">Sign in</Link></p>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

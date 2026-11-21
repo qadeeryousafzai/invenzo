@@ -134,26 +134,26 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
   }, [currentPath]);
 
   return (
-    <div className="min-h-screen bg-[#e5efe5] text-[#17231f]">
+    <div className="min-h-screen bg-background text-foreground">
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#e8eee8] bg-[#ffffff] shadow-[2px_0_12px_rgba(0,61,50,0.03)] transition-all duration-300",
+        "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-line bg-surface shadow-clay-elevated transition-all duration-300",
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         sidebarCollapsed ? "w-[86px]" : "w-[288px]"
       )}>
         {/* Logo / Pharmacy */}
-        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#e8eee8] px-4">
+        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line px-4">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#9be66b] text-[#003d32] ring-1 ring-[#d9f99d]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-light text-primary ring-1 ring-primary/20">
               <Pill className="h-5 w-5" />
             </span>
             {!sidebarCollapsed && (
               <span className="min-w-0">
-                <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-[#17231f]">{businessName}</span>
-                <span className="block truncate text-[11px] font-medium text-[#77847d]">{businessType.replaceAll("_", " ") || "Pharmacy"}</span>
+                <span className="block truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">{businessName}</span>
+                <span className="block truncate text-[11px] font-medium text-muted-foreground">{businessType.replaceAll("_", " ") || "Pharmacy"}</span>
               </span>
             )}
           </Link>
-          <button className="rounded-lg p-1.5 text-[#77847d] hover:bg-[#f1f7ee] lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="h-5 w-5" /></button>
+          <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-hover lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="h-5 w-5" /></button>
         </div>
 
         {/* Navigation */}
@@ -173,18 +173,18 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                       onClick={() => !sidebarCollapsed && toggleGroup(item.label)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all",
-                        active ? "bg-[#f8fafc] text-slate-900" : "text-slate-600 hover:bg-[#f8fafc] hover:text-slate-900",
+                        active ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
                         sidebarCollapsed && "justify-center px-2"
                       )}
                       aria-expanded={open}
                       title={sidebarCollapsed ? item.label : undefined}
                     >
-                      <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-[#f1fce0] text-[#003d32]" : "text-[#77847d]")}>
+                      <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-primary-light text-primary" : "text-muted-foreground")}>
                         <Icon className="h-[18px] w-[18px]" />
                       </span>
                       {!sidebarCollapsed && <>
                         <span className="flex-1 truncate">{item.label}</span>
-                        <ChevronDown className={cn("h-4 w-4 text-[#77847d] transition-transform duration-200", open && "rotate-180")} />
+                        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", open && "rotate-180")} />
                       </>}
                     </button>
                     {!sidebarCollapsed && open && (
@@ -200,11 +200,11 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                                 className={cn(
                                   "group flex items-center gap-2.5 rounded-xl border-l-2 px-3 py-2 text-[13px] font-medium transition-colors",
                                   childActive
-                                    ? "border-[#003d32] bg-[#f1fce0] text-[#003d32]"
-                                    : "border-transparent text-[#77847d] hover:border-[#e8eee8] hover:bg-[#f1f7ee] hover:text-[#17231f]"
+                                    ? "border-primary bg-primary-light text-primary"
+                                    : "border-transparent text-muted-foreground hover:border-line hover:bg-surface-hover hover:text-foreground"
                                 )}
                               >
-                                <ChildIcon className={cn("h-4 w-4 shrink-0", childActive ? "text-[#003d32]" : "text-[#77847d] group-hover:text-[#17231f]")} />
+                                <ChildIcon className={cn("h-4 w-4 shrink-0", childActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
                                 <span className="truncate">{child.label}</span>
                               </Link>
                             </li>
@@ -226,17 +226,17 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                       active
-                        ? "bg-[#f1fce0] text-[#003d32] shadow-[inset_3px_0_0_#003d32]"
-                        : "text-[#77847d] hover:bg-[#f1f7ee] hover:text-[#17231f]",
+                        ? "bg-primary-light text-primary shadow-[inset_3px_0_0_var(--primary)]"
+                        : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
                       sidebarCollapsed && "justify-center px-2"
                     )}
                   >
-                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-white/70 text-[#003d32]" : "text-[#77847d] group-hover:text-[#17231f]")}>
+                    <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", active ? "bg-surface/70 text-primary" : "text-muted-foreground group-hover:text-foreground")}>
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
                     {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
                     {!sidebarCollapsed && item.label === "Notifications" && unreadNotifications > 0 && (
-                      <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003d32] px-1.5 text-[10px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>
+                      <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>
                     )}
                   </Link>
                 </li>
@@ -246,21 +246,21 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
         </nav>
 
         {/* Bottom: profile, role, logout + collapse */}
-        <div className="shrink-0 border-t border-[#e8eee8] bg-[#ffffff] p-3">
+        <div className="shrink-0 border-t border-line bg-surface p-3">
           {!sidebarCollapsed ? (
-            <div className="mb-3 flex items-center gap-3 rounded-xl border border-[#e8eee8] bg-[#f1f7ee] p-3">
-              <Avatar className="h-10 w-10 border border-white shadow-sm">
-                <AvatarFallback className="bg-[#9be66b] text-sm font-bold text-[#003d32]">{userName.slice(0, 2).toUpperCase()}</AvatarFallback>
+            <div className="mb-3 flex items-center gap-3 rounded-xl border border-line bg-surface-hover p-3">
+              <Avatar className="h-10 w-10 border border-line shadow-clay-subtle">
+                <AvatarFallback className="bg-primary-light text-sm font-bold text-primary">{userName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[#17231f]">{userName}</p>
-                <p className="truncate text-xs font-medium text-[#003d32]">{roleName}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{userName}</p>
+                <p className="truncate text-xs font-medium text-primary">{roleName}</p>
               </div>
             </div>
           ) : (
             <div className="mb-3 flex justify-center">
-              <Avatar className="h-10 w-10 border border-[#e8eee8]" title={`${userName} · ${roleName}`}>
-                <AvatarFallback className="bg-[#9be66b] text-xs font-bold text-[#003d32]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback>
+              <Avatar className="h-10 w-10 border border-line" title={`${userName} · ${roleName}`}>
+                <AvatarFallback className="bg-primary-light text-xs font-bold text-primary">{userName.slice(0, 1).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
           )}
@@ -269,7 +269,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
               type="button"
               onClick={() => setSidebarCollapsed((v) => !v)}
               className={cn(
-                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:bg-[#f1f7ee] hover:text-[#17231f]",
+                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm font-medium text-muted-foreground transition hover:bg-surface-hover hover:text-foreground",
                 sidebarCollapsed ? "w-10" : "flex-1 px-3"
               )}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -281,7 +281,7 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
               className={cn(
-                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] text-sm font-medium text-[#77847d] transition hover:border-#eb755e hover:bg-#fff0ec hover:text-[#eb755e]",
+                "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm font-medium text-muted-foreground transition hover:border-destructive hover:bg-destructive/5 hover:text-destructive",
                 sidebarCollapsed ? "w-10" : "px-3"
               )}
               aria-label="Logout"
@@ -294,64 +294,64 @@ export function WorkspaceShell({ children, businessName, businessType, activeId,
         </div>
       </aside>
 
-      {sidebarOpen && <div className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-[1px] lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-muted/50 backdrop-blur-[1px] lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
 
       <div className={cn("min-h-screen transition-all duration-300", sidebarCollapsed ? "lg:pl-[86px]" : "lg:pl-[288px]")}>
-        <header className="sticky top-0 z-30 border-b border-[#e8eee8] bg-[#ffffff]/95 backdrop-blur supports-[backdrop-filter]:bg-[#ffffff]/90">
+        <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e8eee8] text-[#77847d] hover:bg-[#f1f7ee] lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
+            <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line text-muted-foreground hover:bg-surface-hover lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
 
-            <div className="hidden min-w-0 items-center gap-2 text-sm text-[#77847d] lg:flex">
-              <Building2 className="h-4 w-4 text-[#003d32]" />
-              <span className="truncate font-medium text-[#17231f]">{businessName}</span>
+            <div className="hidden min-w-0 items-center gap-2 text-sm text-muted-foreground lg:flex">
+              <Building2 className="h-4 w-4 text-primary" />
+              <span className="truncate font-medium text-foreground">{businessName}</span>
               {crumbs.map((crumb, i) => (
                 <Fragment key={crumb.href}>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-[#cddbcb]" />
-                  <Link href={crumb.href} className={cn("truncate", i === crumbs.length - 1 ? "font-semibold text-[#17231f]" : "hover:text-[#77847d]")}>{crumb.label}</Link>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <Link href={crumb.href} className={cn("truncate", i === crumbs.length - 1 ? "font-semibold text-foreground" : "hover:text-muted-foreground")}>{crumb.label}</Link>
                 </Fragment>
               ))}
             </div>
 
             <div className="ml-auto flex flex-1 items-center justify-end gap-2 sm:gap-3">
               <div className="relative hidden w-full max-w-md md:block">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77847d]" />
-                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e8eee8] bg-[#f1f7ee] pl-9 text-sm text-[#17231f] placeholder:text-[#77847d] focus-visible:bg-white focus-visible:ring-[#9be66b]/20" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:bg-surface focus-visible:ring-primary/20" />
               </div>
 
-              <Link href="/dashboard/notifications" className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e8eee8] bg-[#ffffff] text-[#77847d] transition hover:bg-[#f1f7ee] hover:text-[#17231f]" aria-label="Notifications">
+              <Link href="/dashboard/notifications" className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface text-muted-foreground transition hover:bg-surface-hover hover:text-foreground" aria-label="Notifications">
                 <Bell className="h-5 w-5" />
-                {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003d32] px-1 text-[10px] font-bold text-white ring-2 ring-[#ffffff]">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
+                {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
               </Link>
 
               <PwaInstallButton />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl border border-[#e8eee8] bg-[#ffffff] p-1.5 pr-2.5 transition hover:bg-[#f1f7ee]">
-                    <Avatar className="h-7 w-7 border border-[#e8eee8]"><AvatarFallback className="bg-[#f1fce0] text-[11px] font-bold text-[#003d32]">{userName.slice(0, 1).toUpperCase()}</AvatarFallback></Avatar>
-                    <span className="hidden max-w-[120px] truncate text-sm font-medium text-[#17231f] sm:block">{userName}</span>
-                    <ChevronDown className="h-4 w-4 text-[#77847d]" />
+                  <button className="flex items-center gap-2 rounded-xl border border-line bg-surface p-1.5 pr-2.5 transition hover:bg-surface-hover">
+                    <Avatar className="h-7 w-7 border border-line"><AvatarFallback className="bg-primary-light text-[11px] font-bold text-primary">{userName.slice(0, 1).toUpperCase()}</AvatarFallback></Avatar>
+                    <span className="hidden max-w-[120px] truncate text-sm font-medium text-foreground sm:block">{userName}</span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 rounded-xl border-[#e8eee8] bg-[#ffffff] p-1.5 shadow-lg">
+                <DropdownMenuContent align="end" className="w-64 rounded-xl border-line bg-surface p-1.5 shadow-clay-raised">
                   <DropdownMenuLabel className="px-2 py-2">
-                    <p className="text-sm font-semibold text-[#17231f]">{userName}</p>
-                    <p className="mt-0.5 text-xs text-[#77847d]">{roleName}</p>
-                    <p className="mt-0.5 truncate text-xs text-[#003d32]">{businessName}</p>
+                    <p className="text-sm font-semibold text-foreground">{userName}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{roleName}</p>
+                    <p className="mt-0.5 truncate text-xs text-primary">{businessName}</p>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-[#e8eee8]" />
-                  <DropdownMenuItem asChild><Link href="/dashboard/settings/organization" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-[#77847d]"><UserCircle2 className="h-4 w-4" /> Profile</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/dashboard/settings/business" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-[#77847d]"><Building2 className="h-4 w-4" /> Organization</Link></DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-[#e8eee8]" />
-                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer rounded-lg px-2 py-2 text-[#eb755e] focus:bg-[#fff0ec] focus:text-[#eb755e]"><LogOut className="mr-2 h-4 w-4" /> Logout</DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-line" />
+                  <DropdownMenuItem asChild><Link href="/dashboard/settings/organization" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-muted-foreground"><UserCircle2 className="h-4 w-4" /> Profile</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/dashboard/settings/business" className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-muted-foreground"><Building2 className="h-4 w-4" /> Organization</Link></DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-line" />
+                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer rounded-lg px-2 py-2 text-destructive focus:bg-destructive/5 focus:text-destructive"><LogOut className="mr-2 h-4 w-4" /> Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          <div className="border-t border-[#e8eee8] px-4 py-2 md:hidden">
+          <div className="border-t border-line px-4 py-2 md:hidden">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77847d]" />
-              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-[#e8eee8] bg-[#f1f7ee] pl-9 text-sm" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search medicines, customers, sales..." className="h-10 rounded-xl border-line bg-surface-hover pl-9 text-sm" />
             </div>
           </div>
         </header>

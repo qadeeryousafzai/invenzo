@@ -16,7 +16,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   }, [sidebarOpen]);
 
   return (
-    <div className="min-h-screen bg-[#e5efe5] text-[#17231f]">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader
         name="Administrator"
         onMenuClick={() => setSidebarOpen(true)}

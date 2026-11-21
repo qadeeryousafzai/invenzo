@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function SignInForm() {
   const router = useRouter();
@@ -48,13 +52,27 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5">
-      <label className="field-label">Work email<input className="input-control" name="email" type="email" autoComplete="email" required placeholder="you@company.com" /></label>
-      <label className="field-label">Password<input className="input-control" name="password" type="password" autoComplete="current-password" required placeholder="Enter your password" /></label>
-      {error && <p role="alert" className="alert-error">{error}</p>}
-      <div className="flex justify-end"><Link href="/forgot-password" className="text-sm font-semibold text-emerald-800 hover:text-emerald-950">Forgot password?</Link></div>
-      <button className="button-primary w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin" size={17} /> : <>Sign in <ArrowRight size={17} /></>}</button>
-      <p className="text-center text-sm text-slate-500">New to Invenzo? <Link href="/register" className="font-semibold text-emerald-800 hover:text-emerald-950">Create a workspace</Link></p>
-    </form>
+    <Card className="w-full">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-2xl">Welcome back</CardTitle>
+        <p className="mt-2 text-sm text-muted-foreground">Sign in to your workspace</p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Work email</Label>
+            <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.com" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" name="password" type="password" autoComplete="current-password" required placeholder="Enter your password" />
+          </div>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-end"><Link href="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-hover">Forgot password?</Link></div>
+          <Button className="w-full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="animate-spin mr-2 h-4 w-4" /> : <>Sign in <ArrowRight className="ml-2 h-4 w-4" /></>}</Button>
+          <p className="text-center text-sm text-muted-foreground">New to Invenzo? <Link href="/register" className="font-medium text-primary hover:text-primary-hover">Create a workspace</Link></p>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
