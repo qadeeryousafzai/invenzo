@@ -6,9 +6,9 @@ export default function Icon() {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
       <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#0d9488"/>
-          <stop offset="0.5" stop-color="#0f766e"/>
-          <stop offset="1" stop-color="#134e4a"/>
+          <stop offset="0" stop-color="#3c60fd"/>
+          <stop offset="0.5" stop-color="#2d88ff"/>
+          <stop offset="1" stop-color="#5118f7"/>
         </linearGradient>
       </defs>
       <rect width="512" height="512" rx="112" fill="url(#bg)"/>

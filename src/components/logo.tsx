@@ -22,9 +22,9 @@ export function LogoMark({ size = 28, className }: LogoMarkProps) {
     >
       <defs>
         <linearGradient id="logo-grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0d9488" />
-          <stop offset="0.5" stopColor="#0f766e" />
-          <stop offset="1" stopColor="#134e4a" />
+          <stop stopColor="#3c60fd" />
+          <stop offset="0.5" stopColor="#2d88ff" />
+          <stop offset="1" stopColor="#5118f7" />
         </linearGradient>
       </defs>
       {/* Cube body */}
@@ -35,7 +35,7 @@ export function LogoMark({ size = 28, className }: LogoMarkProps) {
       {/* Cube top face highlight */}
       <path
         d="M24 2 4 13l20 11 20-11L24 2Z"
-        fill="#14b8a6"
+        fill="#51b0ff"
         fillOpacity="0.35"
       />
       {/* "i" — dot */}
@@ -66,7 +66,7 @@ export function LogoFull({ size = 28, className, textClassName, showDot = true }
           textClassName,
         )}
       >
-        invenzo{showDot && <span className="text-emerald-500">.</span>}
+        invenzo{showDot && <span className="text-[#3c60fd]">.</span>}
       </span>
     </span>
   );

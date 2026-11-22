@@ -138,7 +138,7 @@ export function MarketplaceSearch() {
       </header>
 
       <section className="relative isolate overflow-hidden border-b border-line bg-background">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_10%,rgba(13,148,136,.08),transparent_38%),radial-gradient(ellipse_at_85%_65%,rgba(13,148,136,.06),transparent_42%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_10%,rgba(60,96,253,.08),transparent_38%),radial-gradient(ellipse_at_85%_65%,rgba(60,96,253,.06),transparent_42%)]" />
         
         <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
           <div className="grid items-center gap-8 lg:grid-cols-[1fr_320px] lg:gap-10">

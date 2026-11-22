@@ -41,7 +41,7 @@ type ExpiryRow = { id: string; quantityRemaining: unknown; expiryDate: Date | nu
 type TopSelling = { productListingId: string; name: string; branch: string; quantity: number; revenue: number };
 type Stats = { todaySales: number; totalRevenue: number; totalMedicines: number; totalCustomers: number; lowStock: number; expiringSoon: number; todayPurchases: number; netProfit: number; revenueGrowth: number };
 
-const PIE = ["#0D9488", "#059669", "#0284C7", "#D97706", "#DC2626", "#7C3AED"];
+const PIE = ["#3C60FD", "#2D88FF", "#51B0FF", "#5118F7", "#D97706", "#059669"];
 const money = (value: number, currency = "PKR") => value.toLocaleString("en-US", { style: "currency", currency, maximumFractionDigits: 0 });
 const money2 = (value: number, currency = "PKR") => value.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const shortDate = (value: Date | string) => new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });

@@ -6,9 +6,9 @@ export default function AppleIcon() {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
       <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#0d9488"/>
-          <stop offset="0.5" stop-color="#0f766e"/>
-          <stop offset="1" stop-color="#134e4a"/>
+          <stop offset="0" stop-color="#3c60fd"/>
+          <stop offset="0.5" stop-color="#2d88ff"/>
+          <stop offset="1" stop-color="#5118f7"/>
         </linearGradient>
       </defs>
       <rect width="180" height="180" rx="38" fill="url(#bg)"/>

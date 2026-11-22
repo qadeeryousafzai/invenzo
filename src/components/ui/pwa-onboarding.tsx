@@ -81,7 +81,7 @@ export function PwaOnboarding() {
       style={{ touchAction: "none" }}
     >
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488] via-[#0f766e] to-[#134e4a]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#3c60fd] via-[#2d88ff] to-[#5118f7]" />
       <div className="absolute inset-0 bg-black/20" />
 
       {/* Decorative floating orbs */}
@@ -159,7 +159,7 @@ export function PwaOnboarding() {
                 </button>
                 <button
                   onClick={dismiss}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#0f766e] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#3c60fd] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Get started <ArrowRight size={16} />
                 </button>
@@ -180,7 +180,7 @@ export function PwaOnboarding() {
               </button>
               <button
                 onClick={() => setIndex((prev) => Math.min(SLIDES.length - 1, prev + 1))}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#0f766e] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#3c60fd] shadow-lg hover:bg-white/90 transition hover:scale-[1.02] active:scale-[0.98]"
               >
                 Next <ArrowRight size={16} />
               </button>
@@ -189,7 +189,7 @@ export function PwaOnboarding() {
         </main>
 
         {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#134e4a]/80 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#5118f7]/80 to-transparent pointer-events-none" />
       </div>
     </div>
   );
