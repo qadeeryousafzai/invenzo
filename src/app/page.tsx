@@ -121,7 +121,7 @@ const plans = [
     period: "/month",
     description: "Flexible monthly billing for your pharmacy.",
     cta: "Start free trial",
-    href: "/register",
+    href: "/register?plan=monthly",
     highlight: false,
   },
   {
@@ -130,7 +130,7 @@ const plans = [
     period: "/year",
     description: "Best value — save with annual billing.",
     cta: "Start free trial",
-    href: "/register",
+    href: "/register?plan=yearly",
     highlight: true,
     badge: "Best value",
   },
@@ -140,7 +140,7 @@ const plans = [
     period: "one-time",
     description: "Pay once. Yours for life.",
     cta: "Get lifetime",
-    href: "/register",
+    href: "/register?plan=lifetime",
     highlight: false,
   },
 ];
@@ -463,16 +463,8 @@ export default function LandingPage() {
             <SectionHeading
               eyebrow="Pricing"
               title="Simple pricing that scales with you"
-              description="Every plan includes your first month free. No hidden fees, ever."
+              description="Simple, transparent pricing. No hidden fees, ever."
             />
-          </Reveal>
-
-          {/* First month free banner */}
-          <Reveal>
-            <div className="mx-auto mt-8 flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary-light px-5 py-2 text-sm font-semibold text-primary">
-              <Sparkles className="h-4 w-4" />
-              First 1 month free on every plan
-            </div>
           </Reveal>
 
           <div className="mt-14 grid gap-6 lg:grid-cols-3">
@@ -518,10 +510,6 @@ export default function LandingPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-success-light px-3 py-1 text-xs font-semibold text-success">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      First 1 month free
-                    </p>
                     <span className="mt-6 mb-2 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
                       Everything included:
                     </span>

@@ -12,6 +12,13 @@ enum PlatformRole {
   SUPER_ADMIN
 }
 
+enum RegistrationStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
 enum MembershipStatus {
   ACTIVE
   INVITED
@@ -129,6 +136,7 @@ model Business {
   timezone              String                  @default("UTC") @db.VarChar(64)
   website               String?                 @db.VarChar(255)
   accountStatus         BusinessAccountStatus   @default(PENDING_APPROVAL)
+  plan                  String?                 @db.VarChar(16)
   subscriptionStartedAt DateTime?
   subscriptionExpiresAt DateTime?
   statusReason          String?                 @db.VarChar(500)
@@ -172,6 +180,37 @@ model Business {
   @@index([accountStatus, subscriptionExpiresAt, deletedAt])
   @@index([statusUntil, accountStatus])
   @@map("businesses")
+}
+
+model PendingRegistration {
+  id          String             @id @default(cuid())
+  plan        String
+  status      RegistrationStatus @default(PENDING)
+  form        Json
+  amountMinor Int
+  currency    String             @default("PKR") @db.Char(3)
+  tracker     String?            @unique
+  businessId  String?
+  userId      String?
+  expiresAt   DateTime
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([status])
+  @@index([tracker])
+  @@index([expiresAt])
+  @@map("pending_registrations")
+}
+
+model PaymentEvent {
+  id             String   @id @default(cuid())
+  eventToken     String   @unique
+  type           String
+  registrationId String?
+  createdAt      DateTime @default(now())
+
+  @@index([registrationId])
+  @@map("payment_events")
 }
 
 model Membership {

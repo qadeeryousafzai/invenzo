@@ -28,7 +28,12 @@ export default async function SuperAdminBusinessesPage({ searchParams }: PagePro
       { memberships: { some: { role: { key: "OWNER" }, user: { OR: [{ name: { contains: query } }, { email: { contains: query } }] } } } },
     ],
   });
-  if (requestedStatus === "ACTIVE") clauses.push({ deletedAt: null, subscriptionExpiresAt: { gt: now }, OR: [{ accountStatus: "ACTIVE" }, { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } }] });
+  if (requestedStatus === "ACTIVE") clauses.push({ deletedAt: null, OR: [
+    { accountStatus: "ACTIVE", subscriptionExpiresAt: { gt: now } },
+    { accountStatus: "ACTIVE", subscriptionExpiresAt: null },
+    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: { gt: now } },
+    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: null },
+  ] });
   else if (requestedStatus === "EXPIRED") clauses.push({ deletedAt: null, OR: [
     { accountStatus: "EXPIRED" },
     { accountStatus: "ACTIVE", subscriptionExpiresAt: { lte: now } },

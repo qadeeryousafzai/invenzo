@@ -49,22 +49,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.warn("[auth] authorize: password mismatch", { userId: user.id, email });
           return null;
         }
-        if (user.platformRole !== PlatformRole.SUPER_ADMIN) {
-          const now = new Date();
-          const hasActiveBusiness = await prisma.membership.count({
-            where: {
-              userId: user.id,
-              status: "ACTIVE",
-              business: {
-                deletedAt: null,
-                subscriptionExpiresAt: { gt: now },
-                OR: [
-                  { accountStatus: "ACTIVE" },
-                  { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } },
-                ],
+          if (user.platformRole !== PlatformRole.SUPER_ADMIN) {
+            const now = new Date();
+            const hasActiveBusiness = await prisma.membership.count({
+              where: {
+                userId: user.id,
+                status: "ACTIVE",
+                business: {
+                  deletedAt: null,
+                  OR: [
+                    { accountStatus: "ACTIVE", subscriptionExpiresAt: { gt: now } },
+                    { accountStatus: "ACTIVE", subscriptionExpiresAt: null },
+                    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: { gt: now } },
+                    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: null },
+                  ],
+                },
               },
-            },
-          });
+            });
           if (!hasActiveBusiness) {
             // Diagnostic: check why no active business was found
             const memberships = await prisma.membership.findMany({
@@ -101,22 +102,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!current || current.disabledAt || current.deletedAt || current.tokenVersion !== token.tokenVersion) {
           delete token.sub;
           delete token.platformRole;
-        } else {    
-          const now = new Date();
-          const hasActiveBusiness = current.platformRole === PlatformRole.SUPER_ADMIN || await prisma.membership.count({
-            where: {
-              userId: token.sub,
-              status: "ACTIVE",
-              business: {
-                deletedAt: null,
-                subscriptionExpiresAt: { gt: now },
-                OR: [
-                  { accountStatus: "ACTIVE" },
-                  { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now } },
-                ],
+          } else {
+            const now = new Date();
+            const hasActiveBusiness = current.platformRole === PlatformRole.SUPER_ADMIN || await prisma.membership.count({
+              where: {
+                userId: token.sub,
+                status: "ACTIVE",
+                business: {
+                  deletedAt: null,
+                  OR: [
+                    { accountStatus: "ACTIVE", subscriptionExpiresAt: { gt: now } },
+                    { accountStatus: "ACTIVE", subscriptionExpiresAt: null },
+                    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: { gt: now } },
+                    { accountStatus: "TEMPORARILY_BLOCKED", statusUntil: { lte: now }, subscriptionExpiresAt: null },
+                  ],
+                },
               },
-            },
-          }) > 0;
+            }) > 0;
           if (!hasActiveBusiness) {
             delete token.sub;
             delete token.platformRole;

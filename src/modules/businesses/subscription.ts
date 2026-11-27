@@ -17,7 +17,7 @@ export function getWorkspaceAccessStatus(business: WorkspaceSubscription, now = 
   if (business.accountStatus === "TEMPORARILY_BLOCKED" && business.statusUntil && business.statusUntil <= now) {
     return business.subscriptionExpiresAt && business.subscriptionExpiresAt <= now ? "EXPIRED" : "ACTIVE";
   }
-  if (business.accountStatus === "ACTIVE" && (!business.subscriptionExpiresAt || business.subscriptionExpiresAt <= now)) return "EXPIRED";
+  if (business.accountStatus === "ACTIVE" && business.subscriptionExpiresAt && business.subscriptionExpiresAt <= now) return "EXPIRED";
   return business.accountStatus;
 }
 

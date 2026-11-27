@@ -18,8 +18,7 @@ export default async function LoginPage() {
       <section className="relative hidden overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-primary/60 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-36 -top-32 size-136 rounded-full border border-white/10 bg-[radial-gradient(circle,#55c9a244_0%,transparent_70%)]" />
         <Link href="/" className="relative flex items-center gap-2.5">
-          <Image src="/logo/logo.png" alt="Invenzo" width={36} height={36} className="rounded-xl" />
-          <span className="text-xl font-bold tracking-tight">invenzo<span className="text-primary-light">.</span></span>
+          <Image src="/logo/logo.png" alt="Invenzo" width={136} height={136} className="rounded-xl" />
         </Link>
         <div className="relative max-w-lg pb-10">
           <p className="text-sm font-semibold tracking-[.16em] text-primary-light">SMARTER INVENTORY. GREATER CONTROL.</p>

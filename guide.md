@@ -1,4 +1,4 @@
 git status
 git add .
-git commit -m "Update UI and ux of front page"
+git commit -m "Update Payment gateway"
 git push origin main

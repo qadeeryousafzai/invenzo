@@ -15,7 +15,7 @@ export default function RegisterPage() {
           <CardHeader className="text-center pb-6">
             <p className="text-xs font-bold tracking-[.16em] text-primary">GET STARTED</p>
             <CardTitle className="mt-3 text-3xl">Set up your business workspace</CardTitle>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Create your owner account and first branch. We'll send an email verification link before sign-in is enabled.</p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Create your owner account and first branch. Choose a plan and pay securely — your workspace is activated immediately after payment.</p>
           </CardHeader>
           <CardContent>
             <RegisterForm />

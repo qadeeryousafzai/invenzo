@@ -26,6 +26,7 @@ test("enforces all persisted account statuses and expiration precedence", () => 
   assert.equal(getWorkspaceAccessStatus({ accountStatus: "EXPIRED", subscriptionExpiresAt: future }, now), "EXPIRED");
   assert.equal(getWorkspaceAccessStatus({ accountStatus: "DELETED", subscriptionExpiresAt: future }, now), "DELETED");
   assert.equal(getWorkspaceAccessStatus({ accountStatus: "ACTIVE", subscriptionExpiresAt: future, deletedAt: now }, now), "DELETED");
+  assert.equal(getWorkspaceAccessStatus({ accountStatus: "ACTIVE", subscriptionExpiresAt: null }, now), "ACTIVE");
 });
 
 test("restores soft-deleted accounts without creating a new business identity", () => {
